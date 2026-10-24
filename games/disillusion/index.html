@@ -12,21 +12,21 @@
   * { box-sizing: border-box; }
   html, body {
     margin: 0; padding: 0; height: 100%; overflow: hidden;
-    background: #0a5b6b;
+    background: #061a20;
     font-family: "MuseoSans", "Helvetica Neue", Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
   #stage {
     position: fixed; inset: 0;
     display: flex; align-items: center; justify-content: center;
-    background: radial-gradient(ellipse at 50% 45%, #12798c 0%, #0a5b6b 62%, #07414d 100%);
+    background: radial-gradient(ellipse at 50% 42%, rgba(5,68,80,0.55) 0%, #07222a 58%, #041217 100%);
   }
   #game {
     position: relative;
     width: min(100vw, calc(100vh * 4 / 3));
     height: min(100vh, calc(100vw * 3 / 4));
-    background: #0a5b6b;
-    box-shadow: 0 24px 80px rgba(0, 0, 0, .45);
+    background: #06222a;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, .5);
     overflow: hidden;
   }
   @media (max-aspect-ratio: 4/3) { #game { box-shadow: none; } }
@@ -37,29 +37,27 @@
     display: inline-flex; align-items: center; gap: 8px;
     padding: 9px 16px 9px 12px;
     border: 0; border-radius: 999px;
-    background: rgba(4, 40, 48, .38);
+    background: rgba(4, 30, 36, .4);
     color: #fff; font-size: 13px; font-weight: 700;
     letter-spacing: .11em; text-transform: uppercase;
     text-decoration: none; cursor: pointer;
     transition: background .15s ease;
     backdrop-filter: blur(6px);
   }
-  .exit:hover { background: rgba(4, 40, 48, .6); }
+  .exit:hover { background: rgba(4, 30, 36, .65); }
   .exit svg { width: 14px; height: 14px; }
 
   #loader {
     position: absolute; inset: 0; z-index: 30;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 26px;
-    background: radial-gradient(ellipse at 50% 45%, #12798c 0%, #0a5b6b 62%, #07414d 100%);
+    background: radial-gradient(ellipse at 50% 45%, rgba(5,68,80,0.55) 0%, #07222a 62%, #041217 100%);
     color: #fff; transition: opacity .45s ease, visibility .45s ease;
   }
   #loader.done { opacity: 0; visibility: hidden; pointer-events: none; }
-  .mark {
-    font-family: "MuseoSans", "Helvetica Neue", Arial, sans-serif;
-    font-size: 30px; font-weight: 700; letter-spacing: -.02em;
-  }
-  .mark span { color: #7fe3d6; }
+  .mark { font-size: 30px; font-weight: 700; letter-spacing: -.02em; }
+  .mark span { color: #8eaab0; }
+  .game-name { font-size: 13px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; opacity: .62; }
   .bar { width: min(300px, 62vw); height: 6px; border-radius: 99px; background: rgba(255,255,255,.18); overflow: hidden; }
   .bar i { display: block; height: 100%; width: 0%; border-radius: 99px; background: #fff; transition: width .2s ease; }
   #pct { font-size: 13px; font-weight: 700; letter-spacing: .14em; opacity: .72; }
@@ -78,6 +76,7 @@
 
     <div id="loader">
       <div class="mark">Lumo<span>sity</span></div>
+      <div class="game-name">Disillusion</div>
       <div class="bar"><i id="bar"></i></div>
       <div id="pct">LOADING 0%</div>
     </div>
@@ -86,8 +85,6 @@
 </div>
 
 <script>
-  // The Unity player's onUnityLoaded event is normally forwarded to the React host.
-  // Keep a no-op bridge so the build can run standalone.
   window.dispatchReactUnityEvent = function () {};
 
   (function () {
@@ -111,7 +108,7 @@
         codeUrl: 'unity/game.wasm',
         streamingAssetsUrl: 'unity/rel/4.21.3/StreamingAssets',
         companyName: 'Lumosity',
-        productName: 'Disillusion',
+        productName: "Disillusion",
         productVersion: '4.21.3',
         devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2)
       }, function (progress) {
@@ -121,7 +118,6 @@
       }).then(function (instance) {
         window.unityInstance = instance;
         loader.classList.add('done');
-        // Hand the build its launch payload; it starts at the level path.
         try { instance.SendMessage('AppInterface', 'LoadGame', '{}'); } catch (e) {}
       }).catch(function (e) {
         fail(String(e && e.message || e));

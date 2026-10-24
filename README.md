@@ -4,7 +4,12 @@ A static rebuild of Lumosity's Training Games page and My Brain LPI card, with t
 
 - **Original stylesheet** — `styles.css` is Lumosity's compiled CSS with the Museo Sans webfonts bundled locally, so type, spacing and colors match.
 - **Training Games** (`index.html`) — logo-only header (no sidebar, no top-bar controls), no lock icons, working search and category filters. Disillusion is playable; the rest open a detail sheet.
-- **Disillusion** (`games/disillusion/`) — Lumosity's own Disillusion 4.21.3 Unity WebGL build, served from this repo: the same tiles, tile shapes, palette, animations, sounds, levels, tutorial and scoring as the game on app.lumosity.com. The player, its data file and every asset bundle are local; nothing is fetched from Lumosity at runtime.
+- **Playable games** — Lumosity's own Unity WebGL builds, served from this repo: the same art, animation, sound, levels and scoring as on app.lumosity.com. The player, its data file and every asset bundle are local; nothing is fetched from Lumosity at runtime.
+  - `games/disillusion/` — Disillusion 4.21.3
+  - `games/space-trace/` — Space Trace 4.19.3
+  - `games/train-of-thought/` — Train of Thought 4.23.2
+  - `games/penguin-rally/` — Penguin Rally 4.19.2
+  - `games/river-ranger/` — River Ranger 4.21.4
 - **My Brain** (`brain.html`) — the Lumosity Performance Index card: overall LPI bars per area, first/best LPI.
 
 ## Run

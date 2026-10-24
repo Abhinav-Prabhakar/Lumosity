@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Games - Disillusion</title>
+<link rel="icon" href="../../assets/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon-32x32.png">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../styles.css">
+<link rel="stylesheet" href="game.css">
+</head>
+<body>
+<div class="game-shell">
+  <header class="game-topbar">
+    <div class="tb-left">
+      <button id="quitBtn" class="tb-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        <span>QUIT GAME</span>
+      </button>
+      <button id="howBtn" class="tb-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9.2" stroke="currentColor" stroke-width="2"/><path d="M9.6 9.3c.2-1.4 1.3-2.2 2.6-2.2 1.5 0 2.6 1 2.6 2.3 0 1-.6 1.6-1.6 2.2-.9.5-1.2.9-1.2 1.9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17.2" r="1.15" fill="currentColor"/></svg>
+        <span>HOW TO PLAY</span>
+      </button>
+    </div>
+    <div class="tb-right">
+      <div class="tb-pill">
+        <button id="zenBtn" class="tb-icon" title="Play in Zen mode" aria-label="Play in Zen mode">
+          <svg width="20" height="26" viewBox="0 0 16 25" fill="none" aria-hidden="true"><path d="M8.2 1.2C6 6.4 3.2 8.6 3.2 13.2a5.2 5.2 0 0 0 10.4 0c0-1.6-.5-3.2-1.4-4.6-.6 1.1-1.3 1.6-2 1.6-1 0-1.5-.8-1.3-2 .3-1.6 1-3.6.3-7z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg>
+        </button>
+        <button id="soundBtn" class="tb-icon" title="Sound on" aria-label="Toggle sound">
+          <svg id="sndOn" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.5 9.5h3.2L12 6v12l-4.3-3.5H4.5z" fill="currentColor"/><path d="M15.4 9.2a4 4 0 0 1 0 5.6M17.8 6.8a7.4 7.4 0 0 1 0 10.4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+          <svg id="sndOff" class="hidden" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.5 9.5h3.2L12 6v12l-4.3-3.5H4.5z" fill="currentColor"/><path d="M16 10l4 4m0-4l-4 4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="stage">
+    <div class="frame" id="frame">
+      <canvas id="cv" width="1280" height="960" aria-label="Disillusion game area"></canvas>
+
+      <button id="pauseBtn" class="pause-btn" aria-label="Pause game" title="Pause">
+        <span></span><span></span>
+      </button>
+
+      <div class="hud" id="hud">
+        <div class="hud-box"><span class="hud-k">TIME</span><span class="hud-v" id="timeVal">1:00</span></div>
+        <div class="hud-box"><span class="hud-k">SCORE</span><span class="hud-v" id="scoreVal">0</span></div>
+      </div>
+
+      <div class="overlay hidden" id="overlay">
+        <div class="panel hidden" id="pausePanel">
+          <h2>Paused</h2>
+          <button class="btn-primary" data-act="resume">Resume</button>
+          <button class="btn-ghost" data-act="restart">Restart level</button>
+          <button class="btn-ghost" data-act="levels">Level select</button>
+        </div>
+
+        <div class="panel hidden wide" id="howPanel">
+          <h2>How to play</h2>
+          <p class="how-lead">Tap every tile that matches the tile on the left.</p>
+          <ul class="how-list">
+            <li><b>Tall</b> target &rarr; match the <b>color</b>.</li>
+            <li><b>Wide</b> target &rarr; match the <b>symbol</b>.</li>
+          </ul>
+          <p>The target changes as you go, so switch rules fast. Correct taps score 1,000 points and count toward the level goal. Wrong taps cost 500.</p>
+          <button class="btn-primary" data-act="close">Got it</button>
+        </div>
+
+        <div class="panel hidden" id="resultPanel">
+          <div class="result-eyebrow" id="resultEyebrow">LEVEL COMPLETE</div>
+          <h2 id="resultTitle">Nice work</h2>
+          <div class="result-stats">
+            <div><span class="rs-k">SCORE</span><span class="rs-v" id="resultScore">0</span></div>
+            <div><span class="rs-k">TILES</span><span class="rs-v" id="resultTiles">0</span></div>
+            <div><span class="rs-k">BEST</span><span class="rs-v" id="resultBest">0</span></div>
+          </div>
+          <button class="btn-primary" id="resultPrimary">Next level</button>
+          <button class="btn-ghost" id="resultSecondary">Level select</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="game.js"></script>
+</body>
+</html>

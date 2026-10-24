@@ -1,18 +1,29 @@
-# Lumosity — Training Games (static port)
+# Lumosity clone
 
-A static port of the Lumosity Training Games page that actually renders.
+A static rebuild of Lumosity's Training Games page, plus a playable Disillusion and a My Brain LPI card.
 
-- **Original stylesheet**: ships Lumosity's own compiled CSS (`styles.css`) with the local Museo Sans webfonts, so type, spacing, colors and card layout match the real page.
-- **No sidebar, no top-bar controls** — the original header shell with just the Lumosity logo.
-- **No lock icons** — every game is unlocked, including the two Early Access titles.
-- Working game search, category filters, per-area sections, and the original footer.
+- **Original stylesheet** — `styles.css` is Lumosity's compiled CSS with the Museo Sans webfonts bundled locally, so type, spacing and colors match.
+- **Training Games** (`index.html`) — logo-only header (no sidebar, no top-bar controls), no lock icons, working search and category filters. Disillusion is playable; the rest open a detail sheet.
+- **Disillusion** (`games/disillusion/`) — canvas game with the real rule set: the target tile's orientation decides the match (**tall → color, wide → symbol**). Includes the full level ladder (12, 18, 24, 30, 36, 46, 48, 54, 60, 66, 72 … 120), 60-second rounds, scoring (1,000 per correct tile, −500 per miss), time bonus, level unlocks, pause, how-to-play, Zen mode, synthesized sound and animated tiles.
+- **My Brain** (`brain.html`) — the Lumosity Performance Index card: overall LPI bars per area, first/best LPI.
 
-Open `index.html` or visit the GitHub Pages URL.
+## Run
+
+Open `index.html`, or serve the folder:
 
 ```
-index.html          markup (original Lumosity class names)
-styles.css          original compiled stylesheet, font URLs localized
-assets/fonts/       Museo Sans webfonts
-assets/games/       game thumbnails (SVG)
-assets/favicon.ico
+python3 -m http.server 8000
 ```
+
+## Layout
+
+```
+index.html                 Training Games grid
+brain.html                 My Brain / LPI
+styles.css                 Lumosity compiled stylesheet
+games/disillusion/         game shell, styles and engine
+assets/fonts/              Museo Sans woff files
+assets/games/              game thumbnails
+```
+
+Progress (unlocked levels, best scores, sound preference) is stored in `localStorage`.

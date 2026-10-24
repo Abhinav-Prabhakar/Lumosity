@@ -67,6 +67,7 @@
           <a class="underline" target="_blank" rel="noreferrer" href="https://lumosity.com/en/privacy-policy">Privacy Policy</a>
           <a target="_blank" rel="noreferrer" href="https://lumosity.com/en/privacy-policy#what-information-we-collect">California Privacy</a>
           <a target="_blank" rel="noreferrer" href="https://lumosity.com/en/dsa-statement">DSA Statement</a>
+          <a href="brain.html">My Brain</a>
           <a target="_blank" rel="noreferrer" href="https://app.lumosity.com/api/helpCenter?source=L2">Help</a>
         </div>
         <button type="button" class="cursor-pointer border-0 bg-transparent p-0 text-inherit font-inherit max-w-full whitespace-normal self-center sm:self-end text-center sm:text-right hover:underline">Do Not Share My Personal Information</button>
@@ -149,6 +150,9 @@ const GAMES = {
   "word-bubbles":["Word Bubbles","Language","Verbal Fluency","Generate words that start with the same letters to train your Verbal Fluency.",0],
   "word-snatchers":["Word Snatchers","Language","Vocabulary","Exercise your Vocabulary by unscrambling the word.",0]
 };
+
+/* Games with a playable page in this build */
+const PLAYABLE = { "disillusion": "games/disillusion/" };
 
 const TODAYS = ["disillusion","eagle-eye","space-trace","train-of-thought"];
 const AREA_ORDER = [
@@ -234,7 +238,11 @@ function render(){
       AREA_ORDER.map(([area, slugs]) => section(area, slugs, false)).join("");
   }
   sectionsEl.querySelectorAll("button[data-gameslug]").forEach(b=>{
-    b.addEventListener("click", ()=>openModal(b.dataset.gameslug));
+    b.addEventListener("click", ()=>{
+      const dest = PLAYABLE[b.dataset.gameslug];
+      if (dest) window.location.href = dest;
+      else openModal(b.dataset.gameslug);
+    });
   });
 }
 

@@ -2,87 +2,134 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Games - Disillusion</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Disillusion — Lumosity</title>
 <link rel="icon" href="../../assets/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon-32x32.png">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="../../styles.css">
-<link rel="stylesheet" href="game.css">
+<link rel="apple-touch-icon" href="../../assets/favicon-48x48.png">
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; overflow: hidden;
+    background: #0a5b6b;
+    font-family: "MuseoSans", "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  #stage {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at 50% 45%, #12798c 0%, #0a5b6b 62%, #07414d 100%);
+  }
+  #game {
+    position: relative;
+    width: min(100vw, calc(100vh * 4 / 3));
+    height: min(100vh, calc(100vw * 3 / 4));
+    background: #0a5b6b;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, .45);
+    overflow: hidden;
+  }
+  @media (max-aspect-ratio: 4/3) { #game { box-shadow: none; } }
+  #unity-canvas { display: block; width: 100%; height: 100%; outline: none; }
+
+  .exit {
+    position: absolute; top: 18px; left: 22px; z-index: 20;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 9px 16px 9px 12px;
+    border: 0; border-radius: 999px;
+    background: rgba(4, 40, 48, .38);
+    color: #fff; font-size: 13px; font-weight: 700;
+    letter-spacing: .11em; text-transform: uppercase;
+    text-decoration: none; cursor: pointer;
+    transition: background .15s ease;
+    backdrop-filter: blur(6px);
+  }
+  .exit:hover { background: rgba(4, 40, 48, .6); }
+  .exit svg { width: 14px; height: 14px; }
+
+  #loader {
+    position: absolute; inset: 0; z-index: 30;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 26px;
+    background: radial-gradient(ellipse at 50% 45%, #12798c 0%, #0a5b6b 62%, #07414d 100%);
+    color: #fff; transition: opacity .45s ease, visibility .45s ease;
+  }
+  #loader.done { opacity: 0; visibility: hidden; pointer-events: none; }
+  .mark {
+    font-family: "MuseoSans", "Helvetica Neue", Arial, sans-serif;
+    font-size: 30px; font-weight: 700; letter-spacing: -.02em;
+  }
+  .mark span { color: #7fe3d6; }
+  .bar { width: min(300px, 62vw); height: 6px; border-radius: 99px; background: rgba(255,255,255,.18); overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 0%; border-radius: 99px; background: #fff; transition: width .2s ease; }
+  #pct { font-size: 13px; font-weight: 700; letter-spacing: .14em; opacity: .72; }
+  #err { position: absolute; inset: auto 24px 24px; z-index: 40; color: #ffd9d4; font-size: 13px; text-align: center; display: none; }
+</style>
 </head>
 <body>
-<div class="game-shell">
-  <header class="game-topbar">
-    <div class="tb-left">
-      <button id="quitBtn" class="tb-btn">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
-        <span>QUIT GAME</span>
-      </button>
-      <button id="howBtn" class="tb-btn">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9.2" stroke="currentColor" stroke-width="2"/><path d="M9.6 9.3c.2-1.4 1.3-2.2 2.6-2.2 1.5 0 2.6 1 2.6 2.3 0 1-.6 1.6-1.6 2.2-.9.5-1.2.9-1.2 1.9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17.2" r="1.15" fill="currentColor"/></svg>
-        <span>HOW TO PLAY</span>
-      </button>
+<div id="stage">
+  <div id="game">
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+
+    <a class="exit" href="../../index.html" aria-label="Exit to training games">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      Exit
+    </a>
+
+    <div id="loader">
+      <div class="mark">Lumo<span>sity</span></div>
+      <div class="bar"><i id="bar"></i></div>
+      <div id="pct">LOADING 0%</div>
     </div>
-    <div class="tb-right">
-      <div class="tb-pill">
-        <button id="zenBtn" class="tb-icon" title="Play in Zen mode" aria-label="Play in Zen mode">
-          <svg width="20" height="26" viewBox="0 0 16 25" fill="none" aria-hidden="true"><path d="M8.2 1.2C6 6.4 3.2 8.6 3.2 13.2a5.2 5.2 0 0 0 10.4 0c0-1.6-.5-3.2-1.4-4.6-.6 1.1-1.3 1.6-2 1.6-1 0-1.5-.8-1.3-2 .3-1.6 1-3.6.3-7z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg>
-        </button>
-        <button id="soundBtn" class="tb-icon" title="Sound on" aria-label="Toggle sound">
-          <svg id="sndOn" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.5 9.5h3.2L12 6v12l-4.3-3.5H4.5z" fill="currentColor"/><path d="M15.4 9.2a4 4 0 0 1 0 5.6M17.8 6.8a7.4 7.4 0 0 1 0 10.4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
-          <svg id="sndOff" class="hidden" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.5 9.5h3.2L12 6v12l-4.3-3.5H4.5z" fill="currentColor"/><path d="M16 10l4 4m0-4l-4 4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <main class="stage">
-    <div class="frame" id="frame">
-      <canvas id="cv" width="1280" height="960" aria-label="Disillusion game area"></canvas>
-
-      <button id="pauseBtn" class="pause-btn" aria-label="Pause game" title="Pause">
-        <span></span><span></span>
-      </button>
-
-      <div class="hud" id="hud">
-        <div class="hud-box"><span class="hud-k">TIME</span><span class="hud-v" id="timeVal">1:00</span></div>
-        <div class="hud-box"><span class="hud-k">SCORE</span><span class="hud-v" id="scoreVal">0</span></div>
-      </div>
-
-      <div class="overlay hidden" id="overlay">
-        <div class="panel hidden" id="pausePanel">
-          <h2>Paused</h2>
-          <button class="btn-primary" data-act="resume">Resume</button>
-          <button class="btn-ghost" data-act="restart">Restart level</button>
-          <button class="btn-ghost" data-act="levels">Level select</button>
-        </div>
-
-        <div class="panel hidden wide" id="howPanel">
-          <h2>How to play</h2>
-          <p class="how-lead">Take the tile on the left and place it into a gap on the board.</p>
-          <ul class="how-list">
-            <li><b>Tall</b> tile &rarr; it must match the <b>color</b> of every tile it touches.</li>
-            <li><b>Wide</b> tile &rarr; it must match the <b>symbol</b> of every tile it touches.</li>
-            <li>It also has to physically fit the gap &mdash; shaded gaps are the legal drops.</li>
-          </ul>
-          <p>A wrong drop locks that gap for a few seconds. Match enough tiles and clear 4 boards before the timer runs out to unlock the next level.</p>
-          <button class="btn-primary" data-act="close">Got it</button>
-        </div>
-
-        <div class="panel hidden" id="resultPanel">
-          <div class="result-eyebrow" id="resultEyebrow">LEVEL COMPLETE</div>
-          <h2 id="resultTitle">Nice work</h2>
-          <div class="result-stats">
-            <div><span class="rs-k">SCORE</span><span class="rs-v" id="resultScore">0</span></div>
-            <div><span class="rs-k">TILES</span><span class="rs-v" id="resultTiles">0</span></div>
-            <div><span class="rs-k">BEST</span><span class="rs-v" id="resultBest">0</span></div>
-          </div>
-          <button class="btn-primary" id="resultPrimary">Next level</button>
-          <button class="btn-ghost" id="resultSecondary">Level select</button>
-        </div>
-      </div>
-    </div>
-  </main>
+    <div id="err"></div>
+  </div>
 </div>
-<script src="game.js"></script>
+
+<script>
+  // The Unity player's onUnityLoaded event is normally forwarded to the React host.
+  // Keep a no-op bridge so the build can run standalone.
+  window.dispatchReactUnityEvent = function () {};
+
+  (function () {
+    var loader = document.getElementById('loader');
+    var bar = document.getElementById('bar');
+    var pct = document.getElementById('pct');
+    var err = document.getElementById('err');
+
+    function fail(message) {
+      err.style.display = 'block';
+      err.textContent = 'Could not start the game: ' + message;
+    }
+
+    var s = document.createElement('script');
+    s.src = 'unity/game.js';
+    s.onload = function () {
+      if (typeof createUnityInstance !== 'function') { fail('loader missing'); return; }
+      createUnityInstance(document.getElementById('unity-canvas'), {
+        dataUrl: 'unity/game.data',
+        frameworkUrl: 'unity/game.framework.js',
+        codeUrl: 'unity/game.wasm',
+        streamingAssetsUrl: 'unity/rel/4.21.3/StreamingAssets',
+        companyName: 'Lumosity',
+        productName: 'Disillusion',
+        productVersion: '4.21.3',
+        devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2)
+      }, function (progress) {
+        var n = Math.round(progress * 100);
+        bar.style.width = n + '%';
+        pct.textContent = 'LOADING ' + n + '%';
+      }).then(function (instance) {
+        window.unityInstance = instance;
+        loader.classList.add('done');
+        // Hand the build its launch payload; it starts at the level path.
+        try { instance.SendMessage('AppInterface', 'LoadGame', '{}'); } catch (e) {}
+      }).catch(function (e) {
+        fail(String(e && e.message || e));
+      });
+    };
+    s.onerror = function () { fail('could not load unity/game.js'); };
+    document.body.appendChild(s);
+  })();
+</script>
 </body>
 </html>

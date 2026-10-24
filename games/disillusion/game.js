@@ -1,5 +1,14 @@
-/*  Disillusion — a faithful reimplementation of the Lumosity task-switching game.
-    Rule: the target tile's orientation decides the match — TALL = match color, WIDE = match symbol. */
+/*  Disillusion — a faithful reimplementation of Lumosity's task-switching placement game.
+
+    Rules (per Lumosity's own instructions):
+      • Every tile has a Color (red / yellow / blue) and a Symbol (circle / plus / diamond),
+        and is either Tall (vertical) or Wide (horizontal).
+      • A TALL tile must match the COLOR of every tile it touches.
+      • A WIDE tile must match the SYMBOL of every tile it touches.
+      • The tile must also physically fit the gap, or it cannot be placed at all.
+      • A wrong placement locks that space for a few seconds as a penalty.
+      • A level is cleared by matching enough tiles across 4 boards before time runs out.
+*/
 (() => {
   'use strict';
 
@@ -7,15 +16,19 @@
   const ctx = cv.getContext('2d');
   const W = 1280, H = 960;
 
-  const LEVELS = [12, 18, 24, 30, 36, 46, 48, 54, 60, 66, 72, 78, 84, 90, 96, 102, 108, 114, 120];
-  const START_UNLOCKED = 6;
+  // Milestones shown on the level path (Lumosity: 12, 18, 24, 30, 36, 42, 48, 54 …)
+  const LEVELS = [12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 72];
+  const START_UNLOCKED = 6;      // current account sits at the 46 tile
+  const BOARDS_PER_LEVEL = 4;
+  const ROUND_SECONDS = 60;
 
   const PALETTE = [
-    { fill: '#74cfcf', edge: '#4ba7aa' },
-    { fill: '#f5c343', edge: '#cf9f22' },
-    { fill: '#df6157', edge: '#b8463f' }
+    { fill: '#74cfcf', edge: '#4ba7aa' },   // "blue" in Lumosity's copy
+    { fill: '#f5c343', edge: '#cf9f22' },   // yellow
+    { fill: '#df6157', edge: '#b8463f' }    // red
   ];
   const SYMBOLS = ['ring', 'plus', 'clover'];
+  const TILE_HI = { fillPx: 1000, missPx: -250 };
 
   const KEY = { unlocked: 'l2d_unlocked', best: 'l2d_best_', sound: 'l2d_sound' };
 
@@ -56,21 +69,19 @@
       g.gain.exponentialRampToValueAtTime(gain, t0 + 0.012);
       g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
       osc.connect(g).connect(ac.destination);
-      osc.start(t0);
-      osc.stop(t0 + dur + 0.02);
+      osc.start(t0); osc.stop(t0 + dur + 0.02);
     },
-    correct() { this.tone({ freq: 620, to: 930, dur: 0.11, type: 'triangle', gain: 0.1 }); },
-    wrong() { this.tone({ freq: 190, to: 120, dur: 0.2, type: 'square', gain: 0.08 }); },
-    switchRule() { this.tone({ freq: 420, to: 520, dur: 0.09, type: 'sine', gain: 0.06 }); },
+    place() { this.tone({ freq: 520, to: 760, dur: 0.1, type: 'triangle', gain: 0.1 }); },
+    wrong() { this.tone({ freq: 200, to: 120, dur: 0.22, type: 'square', gain: 0.075 }); },
+    locked() { this.tone({ freq: 150, dur: 0.12, type: 'square', gain: 0.05 }); },
+    board() { [523, 659, 784].forEach((f, i) => this.tone({ freq: f, dur: 0.18, type: 'triangle', gain: 0.09, delay: i * 0.07 })); },
     tick() { this.tone({ freq: 1180, dur: 0.07, type: 'square', gain: 0.05 }); },
     start() {
       this.tone({ freq: 392, dur: 0.12, gain: 0.09 });
       this.tone({ freq: 523, dur: 0.12, gain: 0.09, delay: 0.1 });
       this.tone({ freq: 659, dur: 0.24, gain: 0.1, delay: 0.2 });
     },
-    complete() {
-      [523, 659, 784, 1046].forEach((f, i) => this.tone({ freq: f, dur: 0.26, type: 'triangle', gain: 0.1, delay: i * 0.11 }));
-    },
+    complete() { [523, 659, 784, 1046].forEach((f, i) => this.tone({ freq: f, dur: 0.26, type: 'triangle', gain: 0.1, delay: i * 0.11 })); },
     click() { this.tone({ freq: 320, dur: 0.06, type: 'sine', gain: 0.06 }); }
   };
 
@@ -87,7 +98,6 @@
     g.fillStyle = lg;
     g.fillRect(0, 0, W, H);
 
-    // soft cloudy lights, like the paper texture in the original
     for (let i = 0; i < 26; i++) {
       const x = Math.random() * W * 1.2 - W * 0.1;
       const y = Math.random() * H;
@@ -99,7 +109,6 @@
       g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
     }
 
-    // fine paper grain
     const noise = document.createElement('canvas');
     noise.width = 320; noise.height = 240;
     const ng = noise.getContext('2d');
@@ -130,26 +139,25 @@
     goal: 0,
     score: 0,
     shownScore: 0,
-    matched: 0,
-    time: 60,
-    tiles: [],
-    target: null,
+    placed: 0,
+    boardsCleared: 0,
+    time: ROUND_SECONDS,
+    board: null,
+    piece: null,
     zen: false,
     paused: false,
     complete: false,
-    result: null,
-    selectedNode: 0,
+    lastResult: null,
     shakeNode: -1,
     shakeT: 0,
     t: 0,
     lastTs: 0,
-    tickedAt: 0,
-    lastResult: null
+    tickedAt: 0
   };
 
   const nodes = [];
   (function layoutNodes() {
-    const perRow = 10;
+    const perRow = 6;
     for (let i = 0; i < LEVELS.length; i++) {
       const row = i < perRow ? 0 : 1;
       const col = row === 0 ? i : i - perRow;
@@ -157,70 +165,152 @@
       const spread = 1020;
       const step = countInRow > 1 ? spread / (countInRow - 1) : 0;
       const startX = W / 2 - spread / 2;
-      nodes.push({
-        x: startX + col * step,
-        y: row === 0 ? 505 : 705,
-        i
-      });
+      nodes.push({ x: startX + col * step, y: row === 0 ? 505 : 705, i });
     }
   })();
 
-  /* --------------------------------------------------------------- tiles */
-  function randColor() { return Math.floor(Math.random() * PALETTE.length); }
-  function randSymbol() { return Math.floor(Math.random() * SYMBOLS.length); }
+  /* ----------------------------------------------------------------- board */
+  const COL_GAP = 104, ROW_GAP = 112;
+  const TILE_W = 122, TILE_H = 122;
 
-  function makeTile(tall) {
-    return {
-      tall,
-      color: randColor(),
-      symbol: randSymbol(),
-      scale: 0,
-      alpha: 0,
-      pop: 0,
-      shake: 0,
-      respawn: 0,
-      rot: tall ? Math.PI / 2 : 0
-    };
+  const gapsFor = goal => Math.min(18, Math.max(6, Math.ceil(goal / BOARDS_PER_LEVEL)));
+
+  // Board sizes are chosen so the checkerboard always has enough gaps for the goal.
+  const SHAPES = [[4, 3], [5, 3], [6, 3], [6, 4], [7, 4], [7, 5]];
+  function shapeFor(gaps) {
+    for (const [c, r] of SHAPES) if (Math.ceil(c * r / 2) >= gaps) return { cols: c, rows: r };
+    return { cols: 7, rows: 5 };
   }
 
-  function buildCluster() {
-    const tiles = [];
-    const colGap = 104, rowGap = 112;
-    const cx = W * 0.635, cy = H * 0.455;
-    for (let c = 0; c < 4; c++) {
-      for (let r = 0; r < 3; r++) {
-        const tall = c % 2 === 0;
-        const t = makeTile(tall);
-        t.x = cx + (c - 1.5) * colGap;
-        t.y = cy + (r - 1) * rowGap + (c % 2 === 1 ? rowGap * 0.5 : 0);
-        t.delay = (c * 3 + r) * 0.028;
-        tiles.push(t);
+  function randInt(n) { return Math.floor(Math.random() * n); }
+  function shuffle(a) {
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  /* A board is always solvable:
+       gaps sit on a checkerboard, so no two gaps touch;
+       the filled tiles are solved with union-find so that, for every gap,
+       all of its neighbours agree on the attribute that gap's tile will check
+       (colour for a Tall gap, symbol for a Wide gap).
+     Filling a gap therefore never breaks another gap. */
+  function makeBoard(levelIdx, goal) {
+    void levelIdx;
+    const gapCount = gapsFor(goal);
+
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const { cols, rows } = shapeFor(Math.max(gapCount, 3 + attempt));
+      const built = tryBuild(cols, rows, gapCount);
+      if (built) return built;
+    }
+    // Guaranteed fallback: an empty board is always solvable.
+    const { cols, rows } = shapeFor(gapCount);
+    return tryBuild(cols, rows, cols * rows, true) || tryBuild(4, 3, 12, true);
+  }
+
+  /* Seed a mosaic with varied tiles, leaving the rest as gaps. A tile is always
+     minted to fit a gap whose neighbours already agree, so a move always exists. */
+  function tryBuild(cols, rows, gapCount, emptyBoard) {
+    const cx = W * 0.645, cy = H * 0.455;
+    const cells = [];
+    for (let c = 0; c < cols; c++) {
+      for (let r = 0; r < rows; r++) {
+        cells.push({
+          c, r,
+          tall: c % 2 === 0,
+          shape: (c + r) % 3,
+          x: cx + (c - (cols - 1) / 2) * COL_GAP,
+          y: cy + (r - (rows - 1) / 2) * ROW_GAP + (c % 2 === 1 ? ROW_GAP * 0.5 : 0),
+          tile: null, locked: 0, flash: 0, pop: 0
+        });
       }
     }
-    return tiles;
+
+    const seedCount = emptyBoard ? 0 : Math.max(0, cols * rows - gapCount);
+    shuffle(cells.slice()).slice(0, seedCount).forEach(cell => {
+      cell.tile = { color: randInt(PALETTE.length), symbol: randInt(SYMBOLS.length), tall: cell.tall };
+    });
+
+    const board = { cells, cols, rows, index: 0, gapCount };
+    return hasViableGap(board) ? board : null;
   }
 
-  function newTarget() {
+  function neighbours(b, cell) {
+    const at = (c, r) => (c < 0 || r < 0 || c >= b.cols || r >= b.rows) ? null : b.cells[c * b.rows + r];
+    return [at(cell.c - 1, cell.r), at(cell.c + 1, cell.r), at(cell.c, cell.r - 1), at(cell.c, cell.r + 1)]
+      .filter(x => x && x.tile);
+  }
+
+  function fits(b, cell, piece) {
+    if (!piece) return false;
+    if (cell.tile || cell.locked > 0) return false;
+    if (cell.tall !== piece.tall) return false;    // the gap only takes that orientation
+    if (cell.shape !== piece.shape) return false;  // physical interlock
+    const around = neighbours(b, cell);
+    if (!around.length) return true;
+    return piece.tall
+      ? around.every(n => n.tile.color === piece.color)
+      : around.every(n => n.tile.symbol === piece.symbol);
+  }
+
+  function aroundCell(b, cell) {
+    const at = (c, r) => (c < 0 || r < 0 || c >= b.cols || r >= b.rows) ? null : b.cells[c * b.rows + r];
+    return [at(cell.c - 1, cell.r), at(cell.c + 1, cell.r), at(cell.c, cell.r - 1), at(cell.c, cell.r + 1)]
+      .filter(x => x && x.tile);
+  }
+
+  function gapIsViable(b, cell) {
+    const around = aroundCell(b, cell);
+    if (around.length < 2) return true;
+    return cell.tall
+      ? around.every(n => n.tile.color === around[0].tile.color)
+      : around.every(n => n.tile.symbol === around[0].tile.symbol);
+  }
+
+  function hasViableGap(b) {
+    return b.cells.some(c => !c.tile && gapIsViable(b, c));
+  }
+
+  function nextPiece(b) {
+    const gaps = b.cells.filter(c => !c.tile && c.locked <= 0);
+    if (!gaps.length) return null;
+
+    const viable = gaps.filter(c => gapIsViable(b, c));
+    if (!viable.length) return null;
+
+    const target = viable[randInt(viable.length)];
+    const around = aroundCell(b, target);
+    const first = around[0];
+
     return {
-      tall: Math.random() < 0.5,
-      color: randColor(),
-      symbol: randSymbol(),
-      alpha: 0,
-      flip: 0
+      tall: target.tall,
+      shape: target.shape,
+      color: target.tall && first ? first.tile.color : randInt(PALETTE.length),
+      symbol: !target.tall && first ? first.tile.symbol : randInt(SYMBOLS.length),
+      bounce: 0
     };
   }
 
-  function matches(tile) {
-    const t = S.target;
-    if (!t) return false;
-    return t.tall ? tile.color === t.color : tile.symbol === t.symbol;
-  }
+  /* If every gap is blocked, nudge the neighbours of one gap into agreement so
+     the round can always continue (the board visibly shifts instead of dead-ending). */
+  function ensurePiece(b) {
+    const p = nextPiece(b);
+    if (p) return p;
 
-  function ensureMatchExists() {
-    if (S.tiles.some(matches)) return;
-    const t = S.tiles[Math.floor(Math.random() * S.tiles.length)];
-    if (S.target.tall) t.color = S.target.color;
-    else t.symbol = S.target.symbol;
+    const gaps = b.cells.filter(c => !c.tile && c.locked <= 0);
+    if (!gaps.length) return null;
+
+    const gap = gaps[randInt(gaps.length)];
+    const around = aroundCell(b, gap);
+    if (around.length) {
+      const key = gap.tall ? 'color' : 'symbol';
+      const value = around[0].tile[key];
+      around.forEach(n => { n.tile[key] = value; n.pop = 0.001; });
+    }
+    return nextPiece(b);
   }
 
   /* -------------------------------------------------------------- drawing */
@@ -256,15 +346,13 @@
     } else if (kind === 'plus') {
       const a = s * 0.115, b = s * 0.325, r = s * 0.05;
       g.beginPath();
-      // rounded cross
       g.moveTo(-a, -b); g.lineTo(a, -b); g.lineTo(a, -a); g.lineTo(b, -a);
       g.lineTo(b, a); g.lineTo(a, a); g.lineTo(a, b); g.lineTo(-a, b);
       g.lineTo(-a, a); g.lineTo(-b, a); g.lineTo(-b, -a); g.lineTo(-a, -a);
       g.closePath();
       g.lineJoin = 'round';
       g.lineWidth = r;
-      g.stroke();
-      g.fill();
+      g.stroke(); g.fill();
     } else {
       const d = s * 0.115, off = s * 0.135;
       [[-off, -off], [off, -off], [-off, off], [off, off]].forEach(([x, y]) => {
@@ -277,108 +365,50 @@
     g.restore();
   }
 
-  function drawTile(t, g) {
-    // bowtiePath() applies the orientation, so always hand it the wide reference box
-    const baseW = 118, baseH = 88;
-    const w = t.tall ? baseH : baseW;
-    const h = t.tall ? baseW : baseH;
+  function paintTile(g, tall, color, symbol, alpha = 1) {
+    const effW = tall ? TILE_H : TILE_W;
+    const effH = tall ? TILE_W : TILE_H;
 
     g.save();
-    g.translate(t.x, t.y);
+    g.globalAlpha *= alpha;
 
-    if (t.shake) {
-      const k = Math.sin(t.shake * 42) * 9 * t.shake;
-      g.translate(k, 0);
-    }
-    const sc = t.scale * (1 + t.pop * 0.16);
-    g.scale(sc, sc);
-    g.globalAlpha = t.alpha * (1 - t.pop * 0.65);
-
-    // shadow
     g.save();
-    g.translate(0, 9);
-    g.fillStyle = 'rgba(4,26,32,0.42)';
-    bowtiePath(g, baseW, baseH, t.tall);
+    g.translate(0, 8);
+    g.fillStyle = 'rgba(4,26,32,0.4)';
+    bowtiePath(g, TILE_W, TILE_H, tall);
     g.fill();
     g.restore();
 
-    const pal = PALETTE[t.color];
+    const pal = PALETTE[color];
     g.fillStyle = pal.fill;
     g.strokeStyle = pal.fill;
     g.lineJoin = 'round';
-    g.lineWidth = 16;
-    bowtiePath(g, baseW, baseH, t.tall);
+    g.lineWidth = 15;
+    bowtiePath(g, TILE_W, TILE_H, tall);
     g.stroke();
     g.fill();
 
-    // subtle top light
     g.save();
-    bowtiePath(g, baseW, baseH, t.tall);
+    bowtiePath(g, TILE_W, TILE_H, tall);
     g.clip();
-    const lg = g.createLinearGradient(0, -h / 2, 0, h / 2);
+    const lg = g.createLinearGradient(0, -effH / 2, 0, effH / 2);
     lg.addColorStop(0, 'rgba(255,255,255,0.14)');
     lg.addColorStop(0.55, 'rgba(255,255,255,0)');
     g.fillStyle = lg;
-    g.fillRect(-w / 2, -h / 2, w, h);
+    g.fillRect(-effW, -effH, effW * 2, effH * 2);
     g.restore();
 
-    drawSymbol(g, SYMBOLS[t.symbol], Math.min(w, h), 1);
-    g.restore();
-  }
-
-  function drawTarget(g) {
-    const t = S.target;
-    if (!t) return;
-    const x = W * 0.215, y = H * 0.46;
-    const baseW = 128, baseH = 96;
-    const w = t.tall ? baseH : baseW;
-    const h = t.tall ? baseW : baseH;
-
-    g.save();
-    g.translate(x, y);
-    const pulse = 1 + Math.sin(S.t * 2.6) * 0.012;
-    const sc = pulse * (0.86 + t.alpha * 0.14) * (1 - t.flip * 0.12);
-    g.scale(sc, sc);
-    g.globalAlpha = 0.55 + t.alpha * 0.45;
-
-    g.save();
-    g.translate(0, 10);
-    g.fillStyle = 'rgba(4,26,32,0.45)';
-    bowtiePath(g, baseW, baseH, t.tall);
-    g.fill();
-    g.restore();
-
-    const pal = PALETTE[t.color];
-    g.fillStyle = pal.fill;
-    g.strokeStyle = pal.fill;
-    g.lineJoin = 'round';
-    g.lineWidth = 16;
-    bowtiePath(g, baseW, baseH, t.tall);
-    g.stroke();
-    g.fill();
-
-    g.save();
-    bowtiePath(g, baseW, baseH, t.tall);
-    g.clip();
-    const lg = g.createLinearGradient(0, -h / 2, 0, h / 2);
-    lg.addColorStop(0, 'rgba(255,255,255,0.16)');
-    lg.addColorStop(0.6, 'rgba(255,255,255,0)');
-    g.fillStyle = lg;
-    g.fillRect(-w / 2, -h / 2, w, h);
-    g.restore();
-
-    drawSymbol(g, SYMBOLS[t.symbol], Math.min(w, h), 1);
+    drawSymbol(g, SYMBOLS[symbol], Math.min(effW, effH), 1);
     g.restore();
   }
 
-  function text(str, x, y, { size = 34, weight = 700, color = '#ffffff', align = 'center', alpha = 1, spacing = 0 } = {}) {
+  function text(str, x, y, { size = 34, weight = 700, color = '#ffffff', align = 'center', alpha = 1 } = {}) {
     ctx.save();
     ctx.globalAlpha = alpha;
     ctx.fillStyle = color;
     ctx.textAlign = align;
     ctx.textBaseline = 'middle';
     ctx.font = `${weight} ${size}px MuseoSans, "Helvetica Neue", Arial, sans-serif`;
-    if ('letterSpacing' in ctx) ctx.letterSpacing = spacing + 'px';
     ctx.fillText(str, x, y);
     ctx.restore();
   }
@@ -386,7 +416,6 @@
   /* --------------------------------------------------------- level select */
   function drawLevelSelect() {
     ctx.drawImage(BG, 0, 0);
-
     text('Tap the highlighted tile to begin.', W / 2, 300, { size: 40, weight: 700, alpha: 0.96 });
 
     const unlocked = store.unlocked();
@@ -403,7 +432,6 @@
       ctx.scale(scale, scale);
 
       const w = 96, h = 70;
-
       ctx.save();
       ctx.translate(0, 7);
       ctx.fillStyle = 'rgba(4,26,32,0.42)';
@@ -434,18 +462,117 @@
       ctx.restore();
     });
 
-    text(`Match ${LEVELS[current]} tiles to unlock the next level.`, W / 2, 880, {
-      size: 34, weight: 700, alpha: 0.95
+    text(`Match ${LEVELS[current]} tiles and clear ${BOARDS_PER_LEVEL} boards to unlock the next level.`, W / 2, 880, {
+      size: 32, weight: 700, alpha: 0.95
     });
   }
 
   /* ------------------------------------------------------------ play view */
+  function drawCellBack(cell, valid) {
+    const effW = cell.tall ? TILE_H : TILE_W;
+    const effH = cell.tall ? TILE_W : TILE_H;
+    void effW; void effH;
+
+    ctx.save();
+    ctx.translate(cell.x, cell.y);
+
+    if (cell.locked > 0) {
+      ctx.globalAlpha = 0.55;
+      ctx.fillStyle = 'rgba(12,20,24,0.75)';
+      bowtiePath(ctx, TILE_W, TILE_H, cell.tall);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(223,97,87,0.75)';
+      ctx.lineWidth = 3;
+      bowtiePath(ctx, TILE_W - 8, TILE_H - 8, cell.tall);
+      ctx.setLineDash([9, 7]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // padlock
+      ctx.globalAlpha = 0.8;
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      ctx.beginPath(); ctx.roundRect(-9, 0, 18, 15, 3); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+      ctx.lineWidth = 2.6;
+      ctx.beginPath(); ctx.arc(0, -1, 6.2, Math.PI, 0); ctx.stroke();
+      ctx.restore();
+      return;
+    }
+
+    // recessed gap
+    ctx.fillStyle = valid ? 'rgba(255,255,255,0.16)' : 'rgba(6,28,34,0.34)';
+    bowtiePath(ctx, TILE_W, TILE_H, cell.tall);
+    ctx.fill();
+    ctx.strokeStyle = valid ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.16)';
+    ctx.lineWidth = valid ? 3 : 2;
+    if (!valid) ctx.setLineDash([8, 8]);
+    bowtiePath(ctx, TILE_W - 6, TILE_H - 6, cell.tall);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
+  function drawBoard(b) {
+    const piece = S.piece;
+
+    // filled tiles first, then gaps on top
+    b.cells.forEach(cell => {
+      if (!cell.tile) return;
+      ctx.save();
+      ctx.translate(cell.x, cell.y);
+      const sc = 1 + cell.pop * 0.14;
+      ctx.scale(sc, sc);
+      paintTile(ctx, cell.tile.tall, cell.tile.color, cell.tile.symbol, 1 - cell.pop * 0.5);
+      ctx.restore();
+    });
+
+    b.cells.forEach(cell => {
+      if (cell.tile) return;
+      const valid = !!piece && fits(b, cell, piece);
+      drawCellBack(cell, valid);
+    });
+
+    // ghost of the held tile in every legal gap (Lumosity's shaded drop areas)
+    if (piece) {
+      b.cells.forEach(cell => {
+        if (cell.tile || cell.locked > 0) return;
+        if (!fits(b, cell, piece)) return;
+        ctx.save();
+        ctx.translate(cell.x, cell.y);
+        paintTile(ctx, piece.tall, piece.color, piece.symbol, 0.32 + Math.sin(S.t * 3) * 0.05);
+        ctx.restore();
+      });
+    }
+  }
+
+  function drawHeldPiece() {
+    const p = S.piece;
+    if (!p) return;
+    ctx.save();
+    ctx.translate(W * 0.205, H * 0.46);
+    const bump = 1 + Math.sin(S.t * 2.4) * 0.012 + p.bounce * 0.12;
+    ctx.scale(bump, bump);
+    paintTile(ctx, p.tall, p.color, p.symbol, 1);
+    ctx.restore();
+
+    text(p.tall ? 'TALL — match color' : 'WIDE — match symbol', W * 0.205, H * 0.63, {
+      size: 22, weight: 700, alpha: 0.7
+    });
+  }
+
   function drawPlay() {
     ctx.drawImage(BG, 0, 0);
-    drawTarget(ctx);
-    S.tiles.forEach(t => drawTile(t, ctx));
+    if (S.board) drawBoard(S.board);
+    drawHeldPiece();
+
     text('Tall:  Color', W * 0.405, H * 0.855, { size: 34, weight: 500, alpha: 0.92 });
     text('Wide:  Symbol', W * 0.615, H * 0.855, { size: 34, weight: 500, alpha: 0.92 });
+
+    if (!S.zen) {
+      text(`Board ${Math.min(S.boardsCleared + 1, BOARDS_PER_LEVEL)} of ${BOARDS_PER_LEVEL}`, W * 0.5, H * 0.925, {
+        size: 22, weight: 700, alpha: 0.55
+      });
+      text(`${S.placed} / ${S.goal} tiles`, W * 0.72, H * 0.925, { size: 22, weight: 700, alpha: 0.55 });
+    }
   }
 
   /* ------------------------------------------------------------- gameplay */
@@ -454,20 +581,44 @@
     S.goal = LEVELS[i];
     S.score = 0;
     S.shownScore = 0;
-    S.matched = 0;
+    S.placed = 0;
+    S.boardsCleared = 0;
     S.zen = zen;
-    S.time = zen ? Infinity : 60;
+    S.time = zen ? Infinity : ROUND_SECONDS;
     S.complete = false;
     S.paused = false;
     S.scene = 'play';
-    S.tiles = buildCluster();
-    S.tiles.forEach(t => { t.scale = 0; t.alpha = 0; });
-    S.target = newTarget();
+    S.board = makeBoard(i, S.goal);
+    S.piece = ensurePiece(S.board);
+    S.boardFullAt = 0;
     S.tickedAt = 0;
-    ensureMatchExists();
     hudVisible(true);
     pauseVisible(true);
     Audio.start();
+  }
+
+  function nextBoard() {
+    S.boardsCleared++;
+    S.board = makeBoard(S.level, S.goal);
+    S.board.index = S.boardsCleared;
+    S.piece = ensurePiece(S.board);
+    Audio.board();
+  }
+
+  function resetBoard() {
+    S.board = makeBoard(S.level, S.goal);
+    S.board.index = S.boardsCleared;
+    S.piece = ensurePiece(S.board);
+    S.boardFullAt = 0;
+    Audio.board();
+  }
+
+  function maybeComplete() {
+    if (!S.zen && S.placed >= S.goal && S.boardsCleared >= BOARDS_PER_LEVEL) {
+      endLevel(true);
+      return true;
+    }
+    return false;
   }
 
   function endLevel(completed) {
@@ -476,71 +627,79 @@
     if (completed && !S.zen) bonus = Math.round(Math.max(0, S.time) * 50);
     const total = S.score + bonus;
     if (!S.zen) store.setBest(S.level, total);
-    if (completed && !S.zen && S.level + 1 < LEVELS.length) store.setUnlocked(Math.max(store.unlocked(), S.level + 2));
-
+    if (completed && !S.zen && S.level + 1 < LEVELS.length) {
+      store.setUnlocked(Math.max(store.unlocked(), S.level + 2));
+    }
     S.lastResult = { completed, bonus, total, level: S.level };
     showResult();
     if (completed) Audio.complete();
   }
 
-  function hitTest(clientX, clientY) {
-    const r = cv.getBoundingClientRect();
-    const x = (clientX - r.left) / r.width * W;
-    const y = (clientY - r.top) / r.height * H;
-    return { x, y };
+  function tryPlace(cell) {
+    if (S.scene !== 'play' || S.paused || S.complete) return;
+    if (!S.board || !S.piece) return;
+    if (cell.tile) return;
+
+    if (cell.locked > 0) { Audio.locked(); return; }
+
+    if (!fits(S.board, cell, S.piece)) {
+      cell.locked = 3;
+      cell.flash = 1;
+      S.score = Math.max(0, S.score + TILE_HI.missPx);
+      Audio.wrong();
+      return;
+    }
+
+    cell.tile = { color: S.piece.color, symbol: S.piece.symbol, tall: S.piece.tall };
+    cell.pop = 0.001;
+    S.score += TILE_HI.fillPx;
+    S.placed++;
+    Audio.place();
+
+    const full = S.board.cells.every(c => !!c.tile);
+    if (full) {
+      S.piece = null;
+      S.boardFullAt = 0.55;
+      return;
+    }
+    S.piece = ensurePiece(S.board);
+    maybeComplete();
   }
 
-  function onTap(px, py) {
+  function hitCell(px, py) {
+    if (!S.board) return null;
+    for (const cell of S.board.cells) {
+      if (Math.abs(px - cell.x) < 62 && Math.abs(py - cell.y) < 62) return cell;
+    }
+    return null;
+  }
+
+  cv.addEventListener('pointerdown', e => {
+    e.preventDefault();
     Audio.ensure();
+    const r = cv.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width * W;
+    const py = (e.clientY - r.top) / r.height * H;
 
     if (S.scene === 'select') {
       for (let i = 0; i < nodes.length; i++) {
         const n = nodes[i];
         if (Math.abs(px - n.x) < 66 && Math.abs(py - n.y) < 52) {
           if (i < store.unlocked()) { Audio.click(); startLevel(i); }
-          else { S.shakeNode = n.i; S.shakeT = 1; Audio.wrong(); S.selectedNode = i; }
+          else { S.shakeNode = n.i; S.shakeT = 1; Audio.wrong(); }
           return;
         }
       }
       return;
     }
 
-    if (S.scene !== 'play' || S.paused) return;
-
-    for (const t of S.tiles) {
-      if (t.pop > 0 || t.respawn > 0) continue;
-      if (Math.abs(px - t.x) < 58 && Math.abs(py - t.y) < 58) {
-        if (matches(t)) {
-          S.score += 1000;
-          S.matched++;
-          t.pop = 0.0001;
-          Audio.correct();
-          if (S.matched >= S.goal) { endLevel(true); return; }
-          S.target = newTarget();
-          S.target.flip = 0.0001;
-          Audio.switchRule();
-          ensureMatchExists();
-        } else {
-          S.score = Math.max(0, S.score - 500);
-          t.shake = 0.55;
-          Audio.wrong();
-        }
-        return;
-      }
-    }
-  }
-
-  cv.addEventListener('pointerdown', e => {
-    e.preventDefault();
-    const p = hitTest(e.clientX, e.clientY);
-    Audio.ensure();
-    onTap(p.x, p.y);
+    const cell = hitCell(px, py);
+    if (cell) tryPlace(cell);
   }, { passive: false });
 
   /* --------------------------------------------------------------- update */
   function update(dt) {
     S.t += dt;
-
     if (S.shakeT > 0) S.shakeT = Math.max(0, S.shakeT - dt * 1.6);
 
     if (S.scene === 'play' && !S.paused && !S.complete) {
@@ -550,37 +709,38 @@
         if (secs <= 5 && secs > 0 && secs !== S.tickedAt) { S.tickedAt = secs; Audio.tick(); }
         if (S.time <= 0) { endLevel(false); return; }
       }
-      if (S.target) {
-        S.target.alpha = Math.min(1, S.target.alpha + dt * 5);
-        if (S.target.flip > 0) S.target.flip = Math.max(0, S.target.flip - dt * 3.2);
+
+      if (S.board) {
+        S.board.cells.forEach(cell => {
+          if (cell.locked > 0) cell.locked = Math.max(0, cell.locked - dt);
+          if (cell.flash > 0) cell.flash = Math.max(0, cell.flash - dt * 2);
+          if (cell.pop > 0) cell.pop = Math.min(1, cell.pop + dt * 3.2);
+        });
+
+        if (S.boardFullAt > 0) {
+          S.boardFullAt -= dt;
+          if (S.boardFullAt <= 0) {
+            S.boardFullAt = 0;
+            const wasReset = S.resetNext;
+            S.resetNext = false;
+            if (!maybeComplete()) { if (wasReset) resetBoard(); else nextBoard(); }
+          }
+        }
       }
-      for (const t of S.tiles) {
-        t.alpha = Math.min(1, t.alpha + dt * 4.2);
-        t.scale = Math.min(1, t.scale + dt * 4.6);
-        if (t.pop > 0) {
-          t.pop += dt * 3.4;
-          if (t.pop >= 1) {
-            t.pop = 0;
-            t.respawn = 0.14;
-          }
-        }
-        if (t.respawn > 0) {
-          t.respawn -= dt;
-          if (t.respawn <= 0) {
-            t.color = randColor();
-            t.symbol = randSymbol();
-            t.scale = 0;
-            t.alpha = 0;
-            t.respawn = 0;
-          }
-        }
-        if (t.shake > 0) t.shake = Math.max(0, t.shake - dt * 2.6);
+
+      if (!S.piece && S.board && S.boardFullAt <= 0 && S.board.cells.some(c => !c.tile)) {
+        S.boardFullAt = 0.45;
+        S.resetNext = true;
+      }
+
+      if (S.piece) {
+        S.piece.intro = Math.min(1, S.piece.intro + dt * 5);
+        if (S.piece.bounce > 0) S.piece.bounce = Math.max(0, S.piece.bounce - dt * 3);
       }
     }
 
     S.shownScore += (S.score - S.shownScore) * Math.min(1, dt * 9);
     if (Math.abs(S.score - S.shownScore) < 1) S.shownScore = S.score;
-
     updateHud();
   }
 
@@ -673,19 +833,18 @@
     document.getElementById('resultEyebrow').textContent = r.completed ? 'LEVEL COMPLETE' : "TIME'S UP";
     document.getElementById('resultTitle').textContent = r.completed
       ? `Level ${r.level + 1} cleared`
-      : `You matched ${S.matched} of ${LEVELS[r.level]}`;
+      : `You placed ${S.placed} of ${LEVELS[r.level]}`;
     document.getElementById('resultScore').textContent = r.total.toLocaleString('en-US');
-    document.getElementById('resultTiles').textContent = String(S.matched);
+    document.getElementById('resultTiles').textContent = String(S.placed);
     document.getElementById('resultBest').textContent = store.best(r.level).toLocaleString('en-US');
 
     const primary = document.getElementById('resultPrimary');
     const hasNext = r.completed && r.level + 1 < LEVELS.length;
     primary.textContent = hasNext ? 'Next level' : (r.completed ? 'Play again' : 'Try again');
-    primary.dataset.act = hasNext ? 'next' : 'retry';
     primary.onclick = () => {
       Audio.click();
       hideOverlay();
-      if (hasNext) startLevel(r.level + 1); else startLevel(r.level);
+      startLevel(hasNext ? r.level + 1 : r.level);
     };
     showPanel('result');
   }
@@ -716,7 +875,8 @@
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && S.scene === 'play') {
-      if (!S.paused) { S.paused = true; showPanel('pause'); } else { S.paused = false; hideOverlay(); }
+      if (!S.paused) { S.paused = true; showPanel('pause'); }
+      else { S.paused = false; hideOverlay(); }
     }
   });
 
@@ -726,8 +886,7 @@
   pauseVisible(false);
   requestAnimationFrame(frame);
 
-  // Development hook (opt-in via ?debug=1) — lets tests drive the sim deterministically.
   if (new URLSearchParams(location.search).has('debug')) {
-    window.__l2 = { S, LEVELS, startLevel, update, drawScene, onTap, matches, store };
+    window.__l2 = { S, LEVELS, startLevel, update, drawScene, tryPlace, fits, nextPiece, makeBoard, store };
   }
 })();

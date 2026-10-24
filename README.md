@@ -1,10 +1,18 @@
 # Lumosity — Training Games (static port)
 
-A fast, self-contained static port of the Lumosity Training Games page.
+A static port of the Lumosity Training Games page that actually renders.
 
-- No sidebar, no top-bar controls — Lumosity logo header only
-- All games unlocked (lock overlays removed)
-- Same look as the original: title + search, category tabs, per-area grids, footer
-- Zero dependencies — works straight from GitHub Pages
+- **Original stylesheet**: ships Lumosity's own compiled CSS (`styles.css`) with the local Museo Sans webfonts, so type, spacing, colors and card layout match the real page.
+- **No sidebar, no top-bar controls** — the original header shell with just the Lumosity logo.
+- **No lock icons** — every game is unlocked, including the two Early Access titles.
+- Working game search, category filters, per-area sections, and the original footer.
 
-Open `index.html` or visit the Pages URL.
+Open `index.html` or visit the GitHub Pages URL.
+
+```
+index.html          markup (original Lumosity class names)
+styles.css          original compiled stylesheet, font URLs localized
+assets/fonts/       Museo Sans webfonts
+assets/games/       game thumbnails (SVG)
+assets/favicon.ico
+```

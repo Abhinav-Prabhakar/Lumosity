@@ -1,150 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8">
 <title>Training Games</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='%231a1a1a'/><circle cx='16' cy='16' r='6' fill='white'/></svg>">
+<link rel="icon" href="assets/favicon.ico">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<!-- Original compiled Lumosity stylesheet, with font URLs pointed at the local Museo Sans files -->
+<link rel="stylesheet" href="styles.css">
 <style>
-  /* ---- Faithful port of app.lumosity.com/games styling (minus sidebar + top-bar controls) ---- */
-  *{box-sizing:border-box}
-  html,body{margin:0;padding:0}
-  body{
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif;
-    color:#1c1c1e;
-    background:#fff;
-    -webkit-font-smoothing:antialiased;
-  }
-  /* Original page uses a fixed yellow gradient wash behind everything */
-  body::before{
-    content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
-    background:
-      radial-gradient(900px 320px at 15% -40px, #ffe9b8 0%, rgba(255,233,184,0) 60%),
-      radial-gradient(1000px 380px at 85% -60px, #fff3d6 0%, rgba(255,243,214,0) 55%),
-      linear-gradient(180deg, #fff7e2 0%, #fffdf6 300px, #ffffff 700px);
-  }
-  a{color:inherit}
-  button{font-family:inherit}
-
-  /* Header: same bar as original (white, sticky, bottom border) — logo only, no sidebar/top-bar controls */
-  header{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid #e7e1d3;height:64px}
-  .header-inner{height:64px;margin:0 auto;padding:0 16px;display:flex;align-items:center;gap:16px}
-  @media(min-width:640px){.header-inner{padding:0 36px}}
-  .logo{display:inline-flex;align-items:center;color:#111;text-decoration:none}
-
-  /* Content shell mirrors: flex flex-col gap-4 px-6 py-6 sm:px-8 */
-  main{margin:0 auto;padding:24px 24px 8px;max-width:1320px}
-  @media(min-width:640px){main{padding:24px 32px 8px}}
-
-  .title-row{display:flex;flex-direction:column;align-items:flex-start;gap:16px;margin-bottom:12px;max-width:560px}
-  @media(min-width:640px){.title-row{flex-direction:row;align-items:center;gap:40px;max-width:640px}}
-  h1{margin:0;font-size:26px;line-height:1.2;font-weight:700;letter-spacing:-0.01em;white-space:nowrap}
-  .search{position:relative;display:flex;align-items:center;width:100%}
-  .search input{
-    width:100%;height:30px;padding:0 48px 0 40px;
-    border:2px solid #ddd5c2;background:#f6f2e7;border-radius:999px;
-    font-size:13px;font-weight:300;color:#1c1c1e;outline:none;
-    transition:border-color .15s, background .15s;
-  }
-  .search input::placeholder{color:#8a8578}
-  .search input:focus{outline:none;border-color:#2456d6;background:#fff}
-  .search .icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#8a8578;pointer-events:none;display:flex}
-
-  /* Category tabs: px-4 py-[10px] text-caption-1 font-semibold border-b-2 */
-  .tabs{display:flex;flex-direction:row;flex-wrap:wrap;gap:4px;margin-bottom:24px;flex:1;border-bottom:1px solid transparent}
-  .tabs button{
-    padding:10px 16px;font-size:13px;font-weight:600;line-height:1.4;cursor:pointer;
-    background:none;border:none;border-bottom:2px solid transparent;color:#7a7565;
-  }
-  .tabs button:hover{color:#1c1c1e}
-  .tabs button.active{color:#1f5eff;border-bottom-color:#1f5eff}
-
-  .section{width:100%;margin-bottom:24px}
-  .section-head{display:flex;align-items:center;line-height:0.1em;margin-bottom:2px}
-  .section-head h2{margin:0;font-size:17px;font-weight:600;color:#1c1c1e}
-  /* Exact original grid rhythm */
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,176px);gap:16px 0;margin-left:-8px;padding:16px 0;position:relative}
-  /* Exact original card */
-  .card{width:176px;padding:8px;position:relative;border-radius:6px;cursor:pointer;background:transparent;border:none;text-align:left;transition:background .2s}
-  .card:hover{background:#f7f1e3}
-  .card .thumb img{width:160px;height:112px;border-radius:4px 4px 0 0;display:block;transition:transform .2s;object-fit:cover;background:#eef1f6}
-  .card:hover .thumb img{transform:scale(1.01)}
-  .card h3{margin:8px 0 2px;font-size:16px;line-height:1.35;font-weight:600;color:#1c1c1e}
-  .card .cat{margin:0;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;line-height:1.33;color:#6f6a5e}
-  .card .skill{margin:0;font-size:14px;font-weight:300;color:#6f6a5e}
-  .early{position:absolute;top:4px;left:4px;z-index:1;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#fff;text-align:center;padding:2px 8px;border-radius:999px;background:rgb(250,100,50)}
-  .empty{padding:28px;border:1px dashed #ddd5c2;border-radius:8px;color:#6f6a5e;background:#fff}
-
-  /* Footer mirrors original */
-  footer{padding:40px;margin-bottom:20px;font-size:12px;font-weight:600;color:#6f6a5e;text-align:center}
-  @media(min-width:640px){footer{text-align:left}}
-  .footer-row{display:flex;flex-direction:column;gap:20px;align-items:center;max-width:1320px;margin:0 auto}
-  @media(min-width:640px){.footer-row{flex-direction:row;gap:32px;align-items:flex-end}}
-  .footer-row .copy{text-transform:uppercase;flex:1}
-  .footer-row a{color:#6f6a5e;text-decoration:none}
-  .footer-row a:hover{text-decoration:underline}
-  .footer-row a.underline{text-decoration:underline}
-
-  /* Detail modal (new; styled to match) */
-  .modal-back{position:fixed;inset:0;background:rgba(20,20,20,.5);display:none;align-items:center;justify-content:center;padding:20px;z-index:100}
-  .modal-back.open{display:flex}
-  .modal{background:#fff;border-radius:12px;max-width:560px;width:100%;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.25)}
-  .modal img{width:100%;height:260px;object-fit:cover;display:block;background:#eef1f6}
-  .modal-body{padding:20px 22px 22px}
-  .modal-body h3{margin:0 0 4px;font-size:22px}
-  .modal-body .meta{color:#6f6a5e;font-size:13px;margin-bottom:10px}
-  .modal-body p{color:#374151;font-size:14px;line-height:1.6;margin:0}
-  .modal-actions{display:flex;gap:10px;margin-top:16px}
-  .btn{border:0;border-radius:999px;padding:11px 18px;font-weight:700;font-size:14px;cursor:pointer}
-  .btn-primary{background:#1f5eff;color:#fff}
-  .btn-primary:hover{background:#1848c4}
-  .btn-ghost{background:#f3f4f6;color:#111}
+  /* Only the game-detail sheet is custom; everything else uses Lumosity's own compiled classes. */
+  body{margin:0}
+  .l2-modal-back{position:fixed;inset:0;background:rgba(12,31,49,.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:1000}
+  .l2-modal-back.open{display:flex}
+  .l2-modal{background:var(--color-surface-default,#fff);border-radius:8px;max-width:560px;width:100%;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.25);font-family:inherit}
+  .l2-modal img{width:100%;height:240px;object-fit:cover;display:block;background:var(--color-background-subdued,#f4f2f1)}
+  .l2-modal-body{padding:24px}
+  .l2-modal-body h3{margin:0 0 4px;font-size:1.5rem;line-height:1.75rem;font-weight:700;color:var(--color-text-default,#0c1f31)}
+  .l2-modal-meta{font-size:.875rem;line-height:1.25rem;font-weight:300;color:#6b7280;margin-bottom:12px}
+  .l2-modal-body p{margin:0;font-size:1rem;line-height:1.375rem;font-weight:300;color:var(--color-text-default,#0c1f31)}
+  .l2-modal-actions{display:flex;gap:12px;margin-top:20px}
+  .l2-btn{border:0;cursor:pointer;padding:10px 20px;border-radius:999px;font-size:.875rem;font-weight:700;font-family:inherit}
+  .l2-btn-primary{background:var(--color-interactive-filled-default,#fa6432);color:#fff}
+  .l2-btn-ghost{background:var(--color-background-subdued,#f4f2f1);color:var(--color-text-default,#0c1f31)}
 </style>
 </head>
 <body>
+<div data-name="app-layout" class="flex flex-col min-h-screen">
 
-<header>
-  <div class="header-inner">
-    <a class="logo" href="./" aria-label="Lumosity home">
-      <svg width="95" height="24" viewBox="0 0 127 32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img"><title>Lumosity</title><path d="M104.695 1.93834C104.853 1.93834 104.985 2.05051 105.015 2.20018L105.022 2.25792V7.29483H112.66C112.773 7.2942 112.876 7.35286 112.934 7.44662L112.959 7.49631L117.82 19.0221L122.403 7.49631C122.446 7.3926 122.538 7.31951 122.646 7.30001L122.701 7.29483H125.812C125.916 7.30442 126.008 7.36278 126.062 7.45197C126.105 7.52333 126.118 7.60758 126.101 7.68753L126.083 7.74642L116.153 31.7985C116.11 31.9022 116.017 31.9753 115.909 31.9948L115.854 32H112.841C112.732 31.999 112.631 31.9442 112.571 31.8536C112.523 31.7812 112.507 31.6935 112.523 31.61L112.542 31.5484L115.965 23.3157L110.41 10.5393H105.07L105.071 17.7611L105.079 18.2391L105.092 18.5317C105.094 18.5788 105.097 18.6251 105.1 18.6705L105.122 18.9332C105.126 18.9754 105.131 19.0168 105.135 19.0574L105.168 19.2919C105.365 20.4938 105.915 20.927 107.3 21.0585L107.57 21.0798L107.86 21.0946L108.17 21.1037C108.224 21.1048 108.279 21.1057 108.334 21.1064C108.489 21.1097 108.618 21.2214 108.647 21.369L108.653 21.426V24.205C108.65 24.3628 108.535 24.4926 108.385 24.5194L108.327 24.5245L107.839 24.5235L107.405 24.5149C103.081 24.3832 101.563 22.8766 101.393 18.5257L101.38 18.0885L101.376 17.6327V2.25792C101.379 2.10241 101.491 1.97377 101.639 1.94451L101.695 1.93834H104.695ZM96.1402 7.29483C96.3205 7.29483 96.4666 7.44103 96.4666 7.62136V23.8645C96.4666 24.0449 96.3205 24.1911 96.1402 24.1911H93.1404C93.0545 24.1911 92.9721 24.1565 92.912 24.095C92.8519 24.0336 92.8191 23.9505 92.821 23.8645V7.6422C92.8132 7.55274 92.8433 7.46413 92.9041 7.39804C92.9649 7.33195 93.0506 7.29449 93.1404 7.29483H96.1402ZM94.6403 0C95.2425 0 95.8201 0.239352 96.2459 0.6654C96.6718 1.09145 96.911 1.6693 96.911 2.27182C96.911 3.52651 95.8944 4.54364 94.6403 4.54364C93.3862 4.54364 92.3696 3.52651 92.3696 2.27182C92.3696 1.01713 93.3862 0 94.6403 0ZM82.3146 6.91967C85.4256 6.91967 87.5574 8.01737 88.9809 9.89318C89.0397 9.96821 89.0628 10.0652 89.0441 10.1587C89.0254 10.2522 88.9668 10.3329 88.8837 10.3795L86.4186 11.7204C86.2803 11.7983 86.1058 11.7628 86.0089 11.637C85.1373 10.4891 83.7533 9.84879 82.3146 9.92792C80.3217 9.92792 79.3773 10.845 79.3773 11.9566C79.3773 12.7412 80.1004 13.1589 81.4295 13.5469L81.7743 13.6435L82.144 13.74L82.5381 13.8376L83.3979 14.0408L83.7141 14.1102L84.1827 14.2188L84.4957 14.2965L84.8082 14.379L85.1189 14.4672L85.4269 14.5616L85.7312 14.6629L86.0306 14.7717C87.9099 15.4862 89.4392 16.6939 89.4392 19.1403C89.4392 21.6761 87.1824 24.5871 82.4952 24.5523C79.0232 24.5523 76.6136 23.3365 75.1414 21.023C75.0815 20.9549 75.0533 20.8645 75.0639 20.7744C75.0745 20.6843 75.1229 20.6029 75.197 20.5506L77.8774 19.0986C78.024 19.0164 78.2092 19.062 78.301 19.2028C79.2536 20.6505 80.9043 21.4816 82.6341 21.3843C84.7173 21.3843 85.8075 20.37 85.8075 19.1889C85.8075 18.3012 84.9798 17.8586 83.8243 17.5316L83.5158 17.4487C83.4632 17.4353 83.4101 17.422 83.3566 17.4088L82.862 17.2934L81.6411 17.0282L81.161 16.9283L80.8409 16.8569L80.3632 16.7406L80.0478 16.6562C79.9955 16.6416 79.9433 16.6268 79.8913 16.6117L79.5816 16.5175C79.5304 16.5012 79.4793 16.4846 79.4285 16.4677L79.1267 16.3623C77.2344 15.669 75.7317 14.4754 75.7317 12.0261C75.7317 9.35823 78.294 6.89188 82.3146 6.91967ZM64.5657 6.99609C69.4055 7.00766 73.3197 10.9424 73.3082 15.7846C73.2967 20.6269 69.3639 24.543 64.524 24.5316C62.1958 24.539 59.9614 23.6141 58.319 21.9631C56.6767 20.3121 55.7629 18.0722 55.7815 15.7429C55.793 10.9007 59.7258 6.98463 64.5657 6.99609ZM61.8932 11.0906C60.2607 12.0603 59.2882 13.8448 59.3576 15.7429C59.2882 17.6411 60.2607 19.4256 61.8932 20.3953C63.5256 21.365 65.5571 21.365 67.1896 20.3953C68.822 19.4256 69.7945 17.6411 69.7251 15.7429C69.7945 13.8448 68.822 12.0603 67.1896 11.0906C65.5571 10.1209 63.5256 10.1209 61.8932 11.0906ZM45.789 7.00999C49.688 7.00999 52.808 9.44855 52.9836 14.1209L52.99 14.3604V23.8645C52.99 24.0224 52.8778 24.1546 52.7282 24.1847L52.6705 24.1911H49.636C49.4758 24.1911 49.3425 24.0755 49.3149 23.9232L49.3096 23.8645V14.6522C49.3096 11.6023 48.1291 10.1086 45.8376 10.1086C43.5981 10.1086 42.4198 11.5418 42.3674 14.4471L42.3656 14.6522V23.8645C42.3656 24.0224 42.2535 24.1546 42.1039 24.1847L42.0462 24.1911H39.0116C38.8514 24.1911 38.7181 24.0755 38.6905 23.9232L38.6852 23.8645V14.6522C38.6852 11.6023 37.5117 10.1086 35.2132 10.1086C32.967 10.1086 31.7951 11.5351 31.743 14.4467L31.7412 14.6522V23.8645C31.7412 24.0248 31.6257 24.1581 31.4735 24.1858L31.4148 24.1911H28.3803C28.2201 24.1911 28.0868 24.0755 28.0592 23.9232L28.0539 23.8645V14.3604C28.0539 9.53191 31.2482 7.00999 35.1993 7.00999C37.2139 6.936 39.1635 7.73036 40.5532 9.19149C41.8391 7.77755 43.6654 6.9841 45.569 7.00406L45.789 7.00999ZM12.8673 7.31567C13.0275 7.31567 13.1608 7.43119 13.1884 7.58351L13.1937 7.64221V16.8267C13.1937 19.8628 14.8047 21.3773 17.0615 21.3773C19.267 21.3773 20.8093 19.9441 20.8783 17.0323L20.8807 16.8267V7.64221C20.8807 7.48191 20.9962 7.34858 21.1484 7.32094L21.2071 7.31567H24.2416C24.4019 7.31567 24.5351 7.43119 24.5627 7.58351L24.568 7.64221V17.1255C24.568 21.5997 21.8112 24.4759 17.0615 24.4759C12.3884 24.4759 9.62428 21.6917 9.53633 17.3407L9.53417 17.1255V7.64221C9.53417 7.48191 9.64962 7.34858 9.80187 7.32094L9.86053 7.31567H12.8673ZM3.32619 1.93834C3.48301 1.93834 3.61343 2.05139 3.64047 2.20048L3.64562 2.25792L3.64618 17.768L3.6509 18.092C3.65212 18.1442 3.65356 18.1956 3.65524 18.2461L3.66829 18.5387L3.68774 18.8112L3.71427 19.0644C3.88595 20.4454 4.43149 20.9258 5.90848 21.0655L6.1789 21.0867L6.46935 21.1016L6.78049 21.1107C6.83411 21.1118 6.88862 21.1126 6.94404 21.1133C7.08286 21.1311 7.1925 21.2347 7.22144 21.3674L7.22874 21.426V24.205C7.22539 24.3628 7.11043 24.4925 6.96021 24.5194L6.90237 24.5245L6.46303 24.5235L6.02863 24.515C1.70478 24.3849 0.186988 22.8944 0.016558 18.5289L0.00408809 18.0902C0.00271682 18.0155 0.0016948 17.9401 0.00101559 17.8638L0 2.25792C0.00335833 2.10004 0.118315 1.97033 0.268534 1.94345L0.32637 1.93834H3.32619Z" fill="currentColor"></path></svg>
+  <!-- Header: original nav shell, trimmed to the Lumosity logo (top-bar controls removed) -->
+  <nav class="h-(--l2-nav-height) flex flex-row justify-between items-center w-full px-4 sm:px-9 border-b border-border-subdued bg-white sticky top-0 z-50">
+    <a class="inline-flex items-center" href="./" aria-label="Lumosity home">
+      <svg width="122" height="24" viewBox="0 0 127 32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" class="block sm:hidden text-text-default"><title>Lumosity</title><path d="M104.695 1.93834C104.853 1.93834 104.985 2.05051 105.015 2.20018L105.022 2.25792V7.29483H112.66C112.773 7.2942 112.876 7.35286 112.934 7.44662L112.959 7.49631L117.82 19.0221L122.403 7.49631C122.446 7.3926 122.538 7.31951 122.646 7.30001L122.701 7.29483H125.812C125.916 7.30442 126.008 7.36278 126.062 7.45197C126.105 7.52333 126.118 7.60758 126.101 7.68753L126.083 7.74642L116.153 31.7985C116.11 31.9022 116.017 31.9753 115.909 31.9948L115.854 32H112.841C112.732 31.999 112.631 31.9442 112.571 31.8536C112.523 31.7812 112.507 31.6935 112.523 31.61L112.542 31.5484L115.965 23.3157L110.41 10.5393H105.07L105.071 17.7611L105.079 18.2391L105.092 18.5317C105.094 18.5788 105.097 18.6251 105.1 18.6705L105.122 18.9332C105.126 18.9754 105.131 19.0168 105.135 19.0574L105.168 19.2919C105.365 20.4938 105.915 20.927 107.3 21.0585L107.57 21.0798L107.86 21.0946L108.17 21.1037C108.224 21.1048 108.279 21.1057 108.334 21.1064C108.489 21.1097 108.618 21.2214 108.647 21.369L108.653 21.426V24.205C108.65 24.3628 108.535 24.4926 108.385 24.5194L108.327 24.5245L107.839 24.5235L107.405 24.5149C103.081 24.3832 101.563 22.8766 101.393 18.5257L101.38 18.0885L101.376 17.6327V2.25792C101.379 2.10241 101.491 1.97377 101.639 1.94451L101.695 1.93834H104.695ZM96.1402 7.29483C96.3205 7.29483 96.4666 7.44103 96.4666 7.62136V23.8645C96.4666 24.0449 96.3205 24.1911 96.1402 24.1911H93.1404C93.0545 24.1911 92.9721 24.1565 92.912 24.095C92.8519 24.0336 92.8191 23.9505 92.821 23.8645V7.6422C92.8132 7.55274 92.8433 7.46413 92.9041 7.39804C92.9649 7.33195 93.0506 7.29449 93.1404 7.29483H96.1402ZM94.6403 0C95.2425 0 95.8201 0.239352 96.2459 0.6654C96.6718 1.09145 96.911 1.6693 96.911 2.27182C96.911 3.52651 95.8944 4.54364 94.6403 4.54364C93.3862 4.54364 92.3696 3.52651 92.3696 2.27182C92.3696 1.01713 93.3862 0 94.6403 0ZM82.3146 6.91967C85.4256 6.91967 87.5574 8.01737 88.9809 9.89318C89.0397 9.96821 89.0628 10.0652 89.0441 10.1587C89.0254 10.2522 88.9668 10.3329 88.8837 10.3795L86.4186 11.7204C86.2803 11.7983 86.1058 11.7628 86.0089 11.637C85.1373 10.4891 83.7533 9.84879 82.3146 9.92792C80.3217 9.92792 79.3773 10.845 79.3773 11.9566C79.3773 12.7412 80.1004 13.1589 81.4295 13.5469L81.7743 13.6435L82.144 13.74L82.5381 13.8376L83.3979 14.0408L83.7141 14.1102L84.1827 14.2188L84.4957 14.2965L84.8082 14.379L85.1189 14.4672L85.4269 14.5616L85.7312 14.6629L86.0306 14.7717C87.9099 15.4862 89.4392 16.6939 89.4392 19.1403C89.4392 21.6761 87.1824 24.5871 82.4952 24.5523C79.0232 24.5523 76.6136 23.3365 75.1414 21.023C75.0815 20.9549 75.0533 20.8645 75.0639 20.7744C75.0745 20.6843 75.1229 20.6029 75.197 20.5506L77.8774 19.0986C78.024 19.0164 78.2092 19.062 78.301 19.2028C79.2536 20.6505 80.9043 21.4816 82.6341 21.3843C84.7173 21.3843 85.8075 20.37 85.8075 19.1889C85.8075 18.3012 84.9798 17.8586 83.8243 17.5316L83.5158 17.4487C83.4632 17.4353 83.4101 17.422 83.3566 17.4088L82.862 17.2934L81.6411 17.0282L81.161 16.9283L80.8409 16.8569L80.3632 16.7406L80.0478 16.6562C79.9955 16.6416 79.9433 16.6268 79.8913 16.6117L79.5816 16.5175C79.5304 16.5012 79.4793 16.4846 79.4285 16.4677L79.1267 16.3623C77.2344 15.669 75.7317 14.4754 75.7317 12.0261C75.7317 9.35823 78.294 6.89188 82.3146 6.91967ZM64.5657 6.99609C69.4055 7.00766 73.3197 10.9424 73.3082 15.7846C73.2967 20.6269 69.3639 24.543 64.524 24.5316C62.1958 24.539 59.9614 23.6141 58.319 21.9631C56.6767 20.3121 55.7629 18.0722 55.7815 15.7429C55.793 10.9007 59.7258 6.98463 64.5657 6.99609ZM61.8932 11.0906C60.2607 12.0603 59.2882 13.8448 59.3576 15.7429C59.2882 17.6411 60.2607 19.4256 61.8932 20.3953C63.5256 21.365 65.5571 21.365 67.1896 20.3953C68.822 19.4256 69.7945 17.6411 69.7251 15.7429C69.7945 13.8448 68.822 12.0603 67.1896 11.0906C65.5571 10.1209 63.5256 10.1209 61.8932 11.0906ZM45.789 7.00999C49.688 7.00999 52.808 9.44855 52.9836 14.1209L52.99 14.3604V23.8645C52.99 24.0224 52.8778 24.1546 52.7282 24.1847L52.6705 24.1911H49.636C49.4758 24.1911 49.3425 24.0755 49.3149 23.9232L49.3096 23.8645V14.6522C49.3096 11.6023 48.1291 10.1086 45.8376 10.1086C43.5981 10.1086 42.4198 11.5418 42.3674 14.4471L42.3656 14.6522V23.8645C42.3656 24.0224 42.2535 24.1546 42.1039 24.1847L42.0462 24.1911H39.0116C38.8514 24.1911 38.7181 24.0755 38.6905 23.9232L38.6852 23.8645V14.6522C38.6852 11.6023 37.5117 10.1086 35.2132 10.1086C32.967 10.1086 31.7951 11.5351 31.743 14.4467L31.7412 14.6522V23.8645C31.7412 24.0248 31.6257 24.1581 31.4735 24.1858L31.4148 24.1911H28.3803C28.2201 24.1911 28.0868 24.0755 28.0592 23.9232L28.0539 23.8645V14.3604C28.0539 9.53191 31.2482 7.00999 35.1993 7.00999C37.2139 6.936 39.1635 7.73036 40.5532 9.19149C41.8391 7.77755 43.6654 6.9841 45.569 7.00406L45.789 7.00999ZM12.8673 7.31567C13.0275 7.31567 13.1608 7.43119 13.1884 7.58351L13.1937 7.64221V16.8267C13.1937 19.8628 14.8047 21.3773 17.0615 21.3773C19.267 21.3773 20.8093 19.9441 20.8783 17.0323L20.8807 16.8267V7.64221C20.8807 7.48191 20.9962 7.34858 21.1484 7.32094L21.2071 7.31567H24.2416C24.4019 7.31567 24.5351 7.43119 24.5627 7.58351L24.568 7.64221V17.1255C24.568 21.5997 21.8112 24.4759 17.0615 24.4759C12.3884 24.4759 9.62428 21.6917 9.53633 17.3407L9.53417 17.1255V7.64221C9.53417 7.48191 9.64962 7.34858 9.80187 7.32094L9.86053 7.31567H12.8673ZM3.32619 1.93834C3.48301 1.93834 3.61343 2.05139 3.64047 2.20048L3.64562 2.25792L3.64618 17.768L3.6509 18.092C3.65212 18.1442 3.65356 18.1956 3.65524 18.2461L3.66829 18.5387L3.68774 18.8112L3.71427 19.0644C3.88595 20.4454 4.43149 20.9258 5.90848 21.0655L6.1789 21.0867L6.46935 21.1016L6.78049 21.1107C6.83411 21.1118 6.88862 21.1126 6.94404 21.1133C7.08286 21.1311 7.1925 21.2347 7.22144 21.3674L7.22874 21.426V24.205C7.22539 24.3628 7.11043 24.4925 6.96021 24.5194L6.90237 24.5245L6.46303 24.5235L6.02863 24.515C1.70478 24.3849 0.186988 22.8944 0.016558 18.5289L0.00408809 18.0902C0.00271682 18.0155 0.0016948 17.9401 0.00101559 17.8638L0 2.25792C0.00335833 2.10004 0.118315 1.97033 0.268534 1.94345L0.32637 1.93834H3.32619Z" fill="currentColor"></path></svg><svg width="95" height="24" viewBox="0 0 127 32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" class="hidden sm:block text-text-default"><title>Lumosity</title><path d="M104.695 1.93834C104.853 1.93834 104.985 2.05051 105.015 2.20018L105.022 2.25792V7.29483H112.66C112.773 7.2942 112.876 7.35286 112.934 7.44662L112.959 7.49631L117.82 19.0221L122.403 7.49631C122.446 7.3926 122.538 7.31951 122.646 7.30001L122.701 7.29483H125.812C125.916 7.30442 126.008 7.36278 126.062 7.45197C126.105 7.52333 126.118 7.60758 126.101 7.68753L126.083 7.74642L116.153 31.7985C116.11 31.9022 116.017 31.9753 115.909 31.9948L115.854 32H112.841C112.732 31.999 112.631 31.9442 112.571 31.8536C112.523 31.7812 112.507 31.6935 112.523 31.61L112.542 31.5484L115.965 23.3157L110.41 10.5393H105.07L105.071 17.7611L105.079 18.2391L105.092 18.5317C105.094 18.5788 105.097 18.6251 105.1 18.6705L105.122 18.9332C105.126 18.9754 105.131 19.0168 105.135 19.0574L105.168 19.2919C105.365 20.4938 105.915 20.927 107.3 21.0585L107.57 21.0798L107.86 21.0946L108.17 21.1037C108.224 21.1048 108.279 21.1057 108.334 21.1064C108.489 21.1097 108.618 21.2214 108.647 21.369L108.653 21.426V24.205C108.65 24.3628 108.535 24.4926 108.385 24.5194L108.327 24.5245L107.839 24.5235L107.405 24.5149C103.081 24.3832 101.563 22.8766 101.393 18.5257L101.38 18.0885L101.376 17.6327V2.25792C101.379 2.10241 101.491 1.97377 101.639 1.94451L101.695 1.93834H104.695ZM96.1402 7.29483C96.3205 7.29483 96.4666 7.44103 96.4666 7.62136V23.8645C96.4666 24.0449 96.3205 24.1911 96.1402 24.1911H93.1404C93.0545 24.1911 92.9721 24.1565 92.912 24.095C92.8519 24.0336 92.8191 23.9505 92.821 23.8645V7.6422C92.8132 7.55274 92.8433 7.46413 92.9041 7.39804C92.9649 7.33195 93.0506 7.29449 93.1404 7.29483H96.1402ZM94.6403 0C95.2425 0 95.8201 0.239352 96.2459 0.6654C96.6718 1.09145 96.911 1.6693 96.911 2.27182C96.911 3.52651 95.8944 4.54364 94.6403 4.54364C93.3862 4.54364 92.3696 3.52651 92.3696 2.27182C92.3696 1.01713 93.3862 0 94.6403 0ZM82.3146 6.91967C85.4256 6.91967 87.5574 8.01737 88.9809 9.89318C89.0397 9.96821 89.0628 10.0652 89.0441 10.1587C89.0254 10.2522 88.9668 10.3329 88.8837 10.3795L86.4186 11.7204C86.2803 11.7983 86.1058 11.7628 86.0089 11.637C85.1373 10.4891 83.7533 9.84879 82.3146 9.92792C80.3217 9.92792 79.3773 10.845 79.3773 11.9566C79.3773 12.7412 80.1004 13.1589 81.4295 13.5469L81.7743 13.6435L82.144 13.74L82.5381 13.8376L83.3979 14.0408L83.7141 14.1102L84.1827 14.2188L84.4957 14.2965L84.8082 14.379L85.1189 14.4672L85.4269 14.5616L85.7312 14.6629L86.0306 14.7717C87.9099 15.4862 89.4392 16.6939 89.4392 19.1403C89.4392 21.6761 87.1824 24.5871 82.4952 24.5523C79.0232 24.5523 76.6136 23.3365 75.1414 21.023C75.0815 20.9549 75.0533 20.8645 75.0639 20.7744C75.0745 20.6843 75.1229 20.6029 75.197 20.5506L77.8774 19.0986C78.024 19.0164 78.2092 19.062 78.301 19.2028C79.2536 20.6505 80.9043 21.4816 82.6341 21.3843C84.7173 21.3843 85.8075 20.37 85.8075 19.1889C85.8075 18.3012 84.9798 17.8586 83.8243 17.5316L83.5158 17.4487C83.4632 17.4353 83.4101 17.422 83.3566 17.4088L82.862 17.2934L81.6411 17.0282L81.161 16.9283L80.8409 16.8569L80.3632 16.7406L80.0478 16.6562C79.9955 16.6416 79.9433 16.6268 79.8913 16.6117L79.5816 16.5175C79.5304 16.5012 79.4793 16.4846 79.4285 16.4677L79.1267 16.3623C77.2344 15.669 75.7317 14.4754 75.7317 12.0261C75.7317 9.35823 78.294 6.89188 82.3146 6.91967ZM64.5657 6.99609C69.4055 7.00766 73.3197 10.9424 73.3082 15.7846C73.2967 20.6269 69.3639 24.543 64.524 24.5316C62.1958 24.539 59.9614 23.6141 58.319 21.9631C56.6767 20.3121 55.7629 18.0722 55.7815 15.7429C55.793 10.9007 59.7258 6.98463 64.5657 6.99609ZM61.8932 11.0906C60.2607 12.0603 59.2882 13.8448 59.3576 15.7429C59.2882 17.6411 60.2607 19.4256 61.8932 20.3953C63.5256 21.365 65.5571 21.365 67.1896 20.3953C68.822 19.4256 69.7945 17.6411 69.7251 15.7429C69.7945 13.8448 68.822 12.0603 67.1896 11.0906C65.5571 10.1209 63.5256 10.1209 61.8932 11.0906ZM45.789 7.00999C49.688 7.00999 52.808 9.44855 52.9836 14.1209L52.99 14.3604V23.8645C52.99 24.0224 52.8778 24.1546 52.7282 24.1847L52.6705 24.1911H49.636C49.4758 24.1911 49.3425 24.0755 49.3149 23.9232L49.3096 23.8645V14.6522C49.3096 11.6023 48.1291 10.1086 45.8376 10.1086C43.5981 10.1086 42.4198 11.5418 42.3674 14.4471L42.3656 14.6522V23.8645C42.3656 24.0224 42.2535 24.1546 42.1039 24.1847L42.0462 24.1911H39.0116C38.8514 24.1911 38.7181 24.0755 38.6905 23.9232L38.6852 23.8645V14.6522C38.6852 11.6023 37.5117 10.1086 35.2132 10.1086C32.967 10.1086 31.7951 11.5351 31.743 14.4467L31.7412 14.6522V23.8645C31.7412 24.0248 31.6257 24.1581 31.4735 24.1858L31.4148 24.1911H28.3803C28.2201 24.1911 28.0868 24.0755 28.0592 23.9232L28.0539 23.8645V14.3604C28.0539 9.53191 31.2482 7.00999 35.1993 7.00999C37.2139 6.936 39.1635 7.73036 40.5532 9.19149C41.8391 7.77755 43.6654 6.9841 45.569 7.00406L45.789 7.00999ZM12.8673 7.31567C13.0275 7.31567 13.1608 7.43119 13.1884 7.58351L13.1937 7.64221V16.8267C13.1937 19.8628 14.8047 21.3773 17.0615 21.3773C19.267 21.3773 20.8093 19.9441 20.8783 17.0323L20.8807 16.8267V7.64221C20.8807 7.48191 20.9962 7.34858 21.1484 7.32094L21.2071 7.31567H24.2416C24.4019 7.31567 24.5351 7.43119 24.5627 7.58351L24.568 7.64221V17.1255C24.568 21.5997 21.8112 24.4759 17.0615 24.4759C12.3884 24.4759 9.62428 21.6917 9.53633 17.3407L9.53417 17.1255V7.64221C9.53417 7.48191 9.64962 7.34858 9.80187 7.32094L9.86053 7.31567H12.8673ZM3.32619 1.93834C3.48301 1.93834 3.61343 2.05139 3.64047 2.20048L3.64562 2.25792L3.64618 17.768L3.6509 18.092C3.65212 18.1442 3.65356 18.1956 3.65524 18.2461L3.66829 18.5387L3.68774 18.8112L3.71427 19.0644C3.88595 20.4454 4.43149 20.9258 5.90848 21.0655L6.1789 21.0867L6.46935 21.1016L6.78049 21.1107C6.83411 21.1118 6.88862 21.1126 6.94404 21.1133C7.08286 21.1311 7.1925 21.2347 7.22144 21.3674L7.22874 21.426V24.205C7.22539 24.3628 7.11043 24.4925 6.96021 24.5194L6.90237 24.5245L6.46303 24.5235L6.02863 24.515C1.70478 24.3849 0.186988 22.8944 0.016558 18.5289L0.00408809 18.0902C0.00271682 18.0155 0.0016948 17.9401 0.00101559 17.8638L0 2.25792C0.00335833 2.10004 0.118315 1.97033 0.268534 1.94345L0.32637 1.93834H3.32619Z" fill="currentColor"></path></svg>
     </a>
-  </div>
-</header>
+  </nav>
 
-<main>
-  <div class="title-row">
-    <div style="font-size:26px;font-weight:700;white-space:nowrap">Training Games</div>
-    <div class="search">
-      <span class="icon"><svg width="16" height="16" viewBox="0 0 17 16" fill="none"><circle cx="7.98295" cy="7.03912" r="6.03912" stroke="currentColor" stroke-width="2"></circle><path d="M14.6468 15.3919 12.5382 11.8692" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
-      <input id="search" type="text" placeholder="What do you want to play?" autocomplete="off">
+  <div data-name="app-layout-container" class="flex flex-col-reverse sm:flex-row flex-1">
+    <div data-name="app-layout-content" class='relative flex flex-col flex-1 justify-between overflow-x-hidden overflow-y-auto pb-[110px] sm:pb-0 before:content-[""] before:fixed before:inset-0 before:bg-yellow-gradient-1 before:-z-10 before:pointer-events-none'>
+      <div data-name="app-layout-content-children" class="flex-1">
+        <div class="flex flex-col gap-4 px-6 py-6 sm:px-8 w-full">
+          <div class="flex flex-col w-full md:flex-row gap-10 xl:gap-[80px]">
+            <div class="flex flex-col w-full">
+              <div class="flex flex-col gap-[10px]">
+                <div class="flex flex-col sm:flex-row justify-start items-start sm:items-center w-full mb-3 gap-4 sm:gap-10 max-w-[560px]">
+                  <div class="text-heading-2 text-nowrap">Training Games</div>
+                  <div class="relative flex items-center w-full">
+                    <input id="search" type="text" placeholder="What do you want to play?" class="w-full h-[30px] pl-10 pr-12 border-2 border-border-subdued bg-surface-subdued rounded-3xl text-body-caption-1 font-light text-text-default placeholder-text-subdued transition-all duration-200 ease-in-out focus:outline-hidden focus:border-interactive-filled-default" value="">
+                    <svg width="1em" height="1em" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" class="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none text-text-subdued"><circle cx="7.98295" cy="7.03912" r="6.03912" stroke="currentColor" stroke-width="2"></circle><path d="M14.6468 15.3919C15.0373 15.7825 15.6705 15.7825 16.061 15.3919C16.4515 15.0014 16.4515 14.3683 16.061 13.9777L14.6468 15.3919ZM12.5382 11.8692L11.8311 12.5763L14.6468 15.3919L15.3539 14.6848L16.061 13.9777L13.2453 11.1621L12.5382 11.8692Z" fill="currentColor"></path></svg>
+                  </div>
+                </div>
+                <div id="tabs" class="flex flex-row flex-wrap gap-1 mb-6 flex-1"></div>
+                <div id="sections"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-10 text-caption-2 font-semibold text-text-subdued mb-5 text-center sm:text-left flex flex-col gap-5">
+        <div class="flex flex-col sm:flex-row gap-5 sm:gap-8 items-center sm:items-end">
+          <div class="uppercase flex-1">© 2026 LUMOS LABS, INC.</div>
+          <a target="_blank" rel="noreferrer" href="https://lumosity.com/en/terms-of-service">Terms of Service</a>
+          <a class="underline" target="_blank" rel="noreferrer" href="https://lumosity.com/en/privacy-policy">Privacy Policy</a>
+          <a target="_blank" rel="noreferrer" href="https://lumosity.com/en/privacy-policy#what-information-we-collect">California Privacy</a>
+          <a target="_blank" rel="noreferrer" href="https://lumosity.com/en/dsa-statement">DSA Statement</a>
+          <a target="_blank" rel="noreferrer" href="https://app.lumosity.com/api/helpCenter?source=L2">Help</a>
+        </div>
+        <button type="button" class="cursor-pointer border-0 bg-transparent p-0 text-inherit font-inherit max-w-full whitespace-normal self-center sm:self-end text-center sm:text-right hover:underline">Do Not Share My Personal Information</button>
+      </div>
     </div>
   </div>
+</div>
 
-  <div class="tabs" id="tabs"></div>
-  <div id="content"></div>
-</main>
-
-<footer>
-  <div class="footer-row">
-    <div class="copy">© 2026 Lumos Labs, Inc.</div>
-    <a href="https://lumosity.com/en/terms-of-service" target="_blank" rel="noreferrer">Terms of Service</a>
-    <a class="underline" href="https://lumosity.com/en/privacy-policy" target="_blank" rel="noreferrer">Privacy Policy</a>
-    <a href="https://lumosity.com/en/privacy-policy#what-information-we-collect" target="_blank" rel="noreferrer">California Privacy</a>
-    <a href="https://lumosity.com/en/dsa-statement" target="_blank" rel="noreferrer">DSA Statement</a>
-    <a href="https://app.lumosity.com/api/helpCenter?source=L2" target="_blank" rel="noreferrer">Help</a>
-  </div>
-</footer>
-
-<div class="modal-back" id="modalBack">
-  <div class="modal" role="dialog" aria-modal="true">
+<div class="l2-modal-back" id="modalBack">
+  <div class="l2-modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <img id="modalImg" alt="">
-    <div class="modal-body">
+    <div class="l2-modal-body">
       <h3 id="modalTitle"></h3>
-      <div class="meta" id="modalMeta"></div>
+      <div class="l2-modal-meta" id="modalMeta"></div>
       <p id="modalDesc"></p>
-      <div class="modal-actions">
-        <button class="btn btn-primary" id="modalPlay">Play now</button>
-        <button class="btn btn-ghost" id="modalClose">Close</button>
+      <div class="l2-modal-actions">
+        <button class="l2-btn l2-btn-primary" id="modalPlay">Play now</button>
+        <button class="l2-btn l2-btn-ghost" id="modalClose">Close</button>
       </div>
     </div>
   </div>
@@ -152,126 +89,175 @@
 
 <script>
 const CATEGORIES = ["All","Speed","Memory","Attention","Flexibility","Reasoning","Math","Language"];
-const GAMES = [
-  ["disillusion","Disillusion","Flexibility","Task Switching","Put your Task-Switching skills to work by matching tiles as quickly as you can.",0],
-  ["eagle-eye","Eagle Eye","Attention","Field of View","Put your Field of View to the test by spotting birds in the corner of your eye.",0],
-  ["space-trace","Space Trace","Flexibility","Spatial Fluency","Practice your Spatial Fluency skills by creating as many unique patterns as possible.",0],
-  ["train-of-thought","Train of Thought","Attention","Divided Attention","Exercise your Divided Attention by directing each train to its matching station.",0],
-  ["highway-hazards","Highway Hazards","Speed","Information Processing","Exercise your Information Processing skills by dodging collisions in a race through the desert.",0],
-  ["penguin-rally","Penguin Rally","Speed","Spatial Orientation","Exercise your Spatial Orientation by beating your rival to the fish.",0],
-  ["river-ranger","River Ranger","Speed","Information Processing","Challenge your Information Processing by quickly spotting animals in a river.",0],
-  ["spatial-speed-match","Spatial Speed Match","Speed","Information Processing","Train your Information Processing by determining whether the spatial orientation of the cards match.",0],
-  ["speed-match","Speed Match","Speed","Information Processing","Train your Information Processing by quickly determining whether the cards match.",0],
-  ["speed-match-overdrive","Speed Match Overdrive","Speed","Information Processing","An advanced version of Speed Match. Put your Information Processing skills to the test.",0],
-  ["speed-pack","Speed Pack","Speed","Visualization","Practice Visualization by quickly fitting the camera into an already filled suitcase.",0],
-  ["splitting-seeds","Splitting Seeds","Speed","Visualization","Test your Visualization skills by quickly dividing seeds into two equal groups.",0],
-  ["cognition-kitchen","Cognition Kitchen","Memory","Short-Term Memory","Train your Short-Term Memory by memorizing a recipe, then preparing it without your cookbook.",0],
-  ["familiar-faces","Familiar Faces","Memory","Face-Name Memory","Exercise your Face-Name Memory by accurately remembering customers' names and orders.",0],
-  ["follow-that-frog","Follow That Frog","Memory","Working Memory","Exercise your Working Memory by memorizing and repeating the frog's jumps.",0],
-  ["memory-match","Memory Match","Memory","Working Memory","Train your Working Memory by determining whether the symbol matches the one presented two cards ago.",0],
-  ["memory-match-overdrive","Memory Match Overdrive","Memory","Working Memory","Train your Working Memory by determining whether the symbols match the one presented three cards ago.",0],
-  ["memory-matrix","Memory Matrix","Memory","Spatial Recall","Train your Spatial Recall by remembering the pattern of tiles.",0],
-  ["memory-serves","Memory Serves","Memory","Working Memory","Exercise your Working Memory by delivering bags to hotel guests.",0],
-  ["pinball-recall","Pinball Recall","Memory","Working Memory","Train your Working Memory by memorizing the bumper locations before they vanish.",0],
-  ["rotation-matrix","Rotation Matrix","Memory","Working Memory","Train your Working Memory by remembering the pattern of tiles after they rotate.",0],
-  ["tidal-treasures","Tidal Treasures","Memory","Short-Term Memory","Train your Short-Term Memory by choosing objects you haven't clicked before.",0],
-  ["whats-my-name","What's My Name?","Memory","Face-Name Recall","Practice your Face-Name Recall in this meet-and-greet game.",0],
-  ["assist-ants","Assist Ants","Attention","Divided Attention","Train your Divided Attention skills by preventing ant collisions.",1],
-  ["feel-the-beat","Feel the Beat","Attention","Timing","Exercise your Timing skills by playing the drums on your keyboard.",0],
-  ["lost-in-migration","Lost in Migration","Attention","Selective Attention","Train your Selective Attention by focusing on the direction of the center bird.",0],
-  ["playing-koi","Playing Koi","Attention","Divided Attention","Train your Divided Attention skills by processing multiple streams of information as you feed fish.",0],
-  ["skyrise","Skyrise","Attention","Field of View","Test your Field of View by remembering numbers flashed across the screen.",0],
-  ["star-search","Star Search","Attention","Selective Attention","Exercise your Selective Attention skills by quickly finding the unique object.",0],
-  ["trouble-brewing","Trouble Brewing","Attention","Divided Attention","Exercise your Divided Attention skills by serving coffee orders at a busy cafe.",0],
-  ["brain-shift","Brain Shift","Flexibility","Task Switching","Test your Task Switching by switching quickly between changing rules.",0],
-  ["brain-shift-overdrive","Brain Shift Overdrive","Flexibility","Task Switching","An advanced version of Brain Shift. Exercise your Task-Switching abilities.",0],
-  ["color-match","Color Match","Flexibility","Response Inhibition","Exercise your Response Inhibition by comparing one word's meaning to another word's color.",0],
-  ["ebb-and-flow","Ebb and Flow","Flexibility","Task Switching","Test your Task-Switching abilities by shifting focus between where the leaves point and how they move.",0],
-  ["robot-factory","Robot Factory","Flexibility","Response Inhibition","Build as many robots as possible. Exercise your Response Inhibition as you ignore incorrect parts.",0],
-  ["fuse-clues","Fuse Clues","Reasoning","Logical Reasoning","Exercise your Logical Reasoning to fix a power outage in an apartment building.",0],
-  ["masterpiece","Masterpiece","Reasoning","Spatial Reasoning","Exercise your Spatial Reasoning by fitting pieces of a mosaic together.",0],
-  ["organic-order","Organic Order","Reasoning","Logical Reasoning","Challenge your Logical Reasoning by planting seeds in the right order.",0],
-  ["pet-detective","Pet Detective","Reasoning","Planning","Exercise your route Planning skills by returning lost pets using the shortest paths.",0],
-  ["pirate-passage","Pirate Passage","Reasoning","Planning","Put your Planning skills to work by avoiding pirates on the path to treasure.",0],
-  ["ruled-out","Ruled Out","Reasoning","Logical Reasoning","Train your Logical Reasoning by determining the hidden rule and selecting cards that follow it.",0],
-  ["jigsaw-sudoku","Speedoku","Reasoning","Logical Reasoning","Train your Logical Reasoning by deducing which symbol belongs in every row, column, and shape.",1],
-  ["chalkboard-challenge","Chalkboard Challenge","Math","Numerical Estimation","Test your Numerical Estimation skills by quickly finding the greater solution.",0],
-  ["halve-your-cake","Halve Your Cake","Math","Proportional Reasoning","Exercise your Proportional Reasoning skills by measuring ingredients for delicious baked goods.",0],
-  ["magic-chance","Magic Chance","Math","Probabilistic Reasoning","Train your Probabilistic Reasoning skills by setting up card tricks.",0],
-  ["raindrops","Raindrops","Math","Arithmetic","Test your Arithmetic skills by solving math problems before they hit the water.",0],
-  ["top-that","Top That","Math","Numerical Estimation","Exercise your Numerical Estimation skills to win the most expensive prize.",0],
-  ["contextual","Contextual","Language","Reading Comprehension","Exercise your Reading Comprehension by replacing incorrectly used words.",0],
-  ["continuum","Continuum","Language","Vocabulary","Exercise your Vocabulary by discerning subtle differences between words.",0],
-  ["editors-choice","Editor's Choice","Language","Vocabulary","Train your Vocabulary by quickly selecting synonyms.",0],
-  ["taking-root","Taking Root","Language","Vocabulary","Exercise your Vocabulary by learning the building blocks of words.",0],
-  ["word-bubbles","Word Bubbles","Language","Verbal Fluency","Generate words that start with the same letters to train your Verbal Fluency.",0],
-  ["word-snatchers","Word Snatchers","Language","Vocabulary","Exercise your Vocabulary by unscrambling the word.",0],
-];
+
+/* name, area, skill, description, earlyAccess */
+const GAMES = {
+  "disillusion":["Disillusion","Flexibility","Task Switching","Put your Task-Switching skills to work by matching tiles as quickly as you can.",0],
+  "eagle-eye":["Eagle Eye","Attention","Field of View","Put your Field of View to the test by spotting birds in the corner of your eye.",0],
+  "space-trace":["Space Trace","Flexibility","Spatial Fluency","Practice your Spatial Fluency skills by creating as many unique patterns as possible.",0],
+  "train-of-thought":["Train of Thought","Attention","Divided Attention","Exercise your Divided Attention by directing each train to its matching station.",0],
+  "highway-hazards":["Highway Hazards","Speed","Information Processing","Exercise your Information Processing skills by dodging collisions in a race through the desert.",0],
+  "penguin-rally":["Penguin Rally","Speed","Spatial Orientation","Exercise your Spatial Orientation by beating your rival to the fish.",0],
+  "river-ranger":["River Ranger","Speed","Information Processing","Challenge your Information Processing by quickly spotting animals in a river.",0],
+  "spatial-speed-match":["Spatial Speed Match","Speed","Information Processing","Train your Information Processing by determining whether the spatial orientation of the cards match.",0],
+  "speed-match":["Speed Match","Speed","Information Processing","Train your Information Processing by quickly determining whether the cards match.",0],
+  "speed-match-overdrive":["Speed Match Overdrive","Speed","Information Processing","An advanced version of Speed Match. Put your Information Processing skills to the test.",0],
+  "speed-pack":["Speed Pack","Speed","Visualization","Practice Visualization by quickly fitting the camera into an already filled suitcase.",0],
+  "splitting-seeds":["Splitting Seeds","Speed","Visualization","Test your Visualization skills by quickly dividing seeds into two equal groups.",0],
+  "cognition-kitchen":["Cognition Kitchen","Memory","Short-Term Memory","Train your Short-Term Memory by memorizing a recipe, then preparing it without your cookbook.",0],
+  "familiar-faces":["Familiar Faces","Memory","Face-Name Memory","Exercise your Face-Name Memory by accurately remembering customers' names and orders.",0],
+  "follow-that-frog":["Follow That Frog","Memory","Working Memory","Exercise your Working Memory by memorizing and repeating the orange frog's jumps.",0],
+  "memory-match":["Memory Match","Memory","Working Memory","Train your Working Memory by determining whether the symbol matches the one presented two cards ago.",0],
+  "memory-match-overdrive":["Memory Match Overdrive","Memory","Working Memory","Train your Working Memory by determining whether the symbols match the one presented three cards ago.",0],
+  "memory-matrix":["Memory Matrix","Memory","Spatial Recall","Train your Spatial Recall by remembering the pattern of tiles.",0],
+  "memory-serves":["Memory Serves","Memory","Working Memory","Exercise your Working Memory by delivering bags to hotel guests.",0],
+  "pinball-recall":["Pinball Recall","Memory","Working Memory","Train your Working Memory by memorizing the bumper locations before they vanish.",0],
+  "rotation-matrix":["Rotation Matrix","Memory","Working Memory","Train your Working Memory by remembering the pattern of tiles after they rotate.",0],
+  "tidal-treasures":["Tidal Treasures","Memory","Short-Term Memory","Train your Short-Term Memory by choosing objects you haven't clicked before.",0],
+  "whats-my-name":["What's My Name?","Memory","Face-Name Recall","Practice your Face-Name Recall in this meet-and-greet game.",0],
+  "assist-ants":["Assist Ants","Attention","Divided Attention","Train your Divided Attention skills by preventing ant collisions.",1],
+  "feel-the-beat":["Feel the Beat","Attention","Timing","Exercise your Timing skills by playing the drums on your keyboard.",0],
+  "lost-in-migration":["Lost in Migration","Attention","Selective Attention","Train your Selective Attention by focusing on the direction of the center bird.",0],
+  "playing-koi":["Playing Koi","Attention","Divided Attention","Train your Divided Attention skills by processing multiple streams of information as you feed fish.",0],
+  "skyrise":["Skyrise","Attention","Field of View","Test your Field of View by remembering numbers flashed across the screen.",0],
+  "star-search":["Star Search","Attention","Selective Attention","Exercise your Selective Attention skills by quickly finding the unique object.",0],
+  "trouble-brewing":["Trouble Brewing","Attention","Divided Attention","Exercise your Divided Attention skills by serving coffee orders at a busy cafe.",0],
+  "brain-shift":["Brain Shift","Flexibility","Task Switching","Test your Task Switching by switching quickly between changing rules.",0],
+  "brain-shift-overdrive":["Brain Shift Overdrive","Flexibility","Task Switching","An advanced version of Brain Shift. Exercise your Task-Switching abilities.",0],
+  "color-match":["Color Match","Flexibility","Response Inhibition","Exercise your Response Inhibition by comparing one word's meaning to another word's color.",0],
+  "ebb-and-flow":["Ebb and Flow","Flexibility","Task Switching","Test your Task-Switching abilities by shifting focus between where the leaves point and how they move.",0],
+  "robot-factory":["Robot Factory","Flexibility","Response Inhibition","Build as many robots as possible. Exercise your Response Inhibition as you ignore incorrect parts.",0],
+  "fuse-clues":["Fuse Clues","Reasoning","Logical Reasoning","Exercise your Logical Reasoning to fix a power outage in an apartment building.",0],
+  "masterpiece":["Masterpiece","Reasoning","Spatial Reasoning","Exercise your Spatial Reasoning by fitting pieces of a mosaic together.",0],
+  "organic-order":["Organic Order","Reasoning","Logical Reasoning","Challenge your Logical Reasoning by planting seeds in the right order.",0],
+  "pet-detective":["Pet Detective","Reasoning","Planning","Exercise your route Planning skills by returning lost pets using the shortest paths.",0],
+  "pirate-passage":["Pirate Passage","Reasoning","Planning","Put your Planning skills to work by avoiding pirates on the path to treasure.",0],
+  "ruled-out":["Ruled Out","Reasoning","Logical Reasoning","Train your Logical Reasoning by determining the hidden rule and selecting cards that follow it.",0],
+  "jigsaw-sudoku":["Speedoku","Reasoning","Logical Reasoning","Train your Logical Reasoning by deducing which symbol belongs in every row, column, and shape.",1],
+  "chalkboard-challenge":["Chalkboard Challenge","Math","Numerical Estimation","Test your Numerical Estimation skills by quickly finding the greater solution.",0],
+  "halve-your-cake":["Halve Your Cake","Math","Proportional Reasoning","Exercise your Proportional Reasoning skills by measuring ingredients for delicious baked goods.",0],
+  "magic-chance":["Magic Chance","Math","Probabilistic Reasoning","Train your Probabilistic Reasoning skills by setting up card tricks.",0],
+  "raindrops":["Raindrops","Math","Arithmetic","Test your Arithmetic skills by solving math problems before they hit the water.",0],
+  "top-that":["Top That","Math","Numerical Estimation","Exercise your Numerical Estimation skills to win the most expensive prize.",0],
+  "contextual":["Contextual","Language","Reading Comprehension","Exercise your Reading Comprehension by replacing incorrectly used words.",0],
+  "continuum":["Continuum","Language","Vocabulary","Exercise your Vocabulary by discerning subtle differences between words.",0],
+  "editors-choice":["Editor's Choice","Language","Vocabulary","Train your Vocabulary by quickly selecting synonyms.",0],
+  "taking-root":["Taking Root","Language","Vocabulary","Exercise your Vocabulary by learning the building blocks of words.",0],
+  "word-bubbles":["Word Bubbles","Language","Verbal Fluency","Generate words that start with the same letters to train your Verbal Fluency.",0],
+  "word-snatchers":["Word Snatchers","Language","Vocabulary","Exercise your Vocabulary by unscrambling the word.",0]
+};
+
 const TODAYS = ["disillusion","eagle-eye","space-trace","train-of-thought"];
-let activeCat = "All", query = "";
+const AREA_ORDER = [
+  ["Speed",["highway-hazards","penguin-rally","river-ranger","spatial-speed-match","speed-match","speed-match-overdrive","speed-pack","splitting-seeds"]],
+  ["Memory",["cognition-kitchen","familiar-faces","follow-that-frog","memory-match","memory-match-overdrive","memory-matrix","memory-serves","pinball-recall","rotation-matrix","tidal-treasures","whats-my-name"]],
+  ["Attention",["assist-ants","eagle-eye","feel-the-beat","lost-in-migration","playing-koi","skyrise","star-search","train-of-thought","trouble-brewing"]],
+  ["Flexibility",["brain-shift","brain-shift-overdrive","color-match","disillusion","ebb-and-flow","robot-factory","space-trace"]],
+  ["Reasoning",["fuse-clues","masterpiece","organic-order","pet-detective","pirate-passage","ruled-out","jigsaw-sudoku"]],
+  ["Math",["chalkboard-challenge","halve-your-cake","magic-chance","raindrops","top-that"]],
+  ["Language",["contextual","continuum","editors-choice","taking-root","word-bubbles","word-snatchers"]]
+];
+
 const tabsEl = document.getElementById("tabs");
-const contentEl = document.getElementById("content");
+const sectionsEl = document.getElementById("sections");
 const searchEl = document.getElementById("search");
+let activeCat = "All", query = "";
 
-CATEGORIES.forEach(c=>{
-  const b=document.createElement("button");
-  b.textContent=c; b.dataset.cat=c;
-  if(c==="All")b.classList.add("active");
-  b.onclick=()=>{activeCat=c;document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("active",x.dataset.cat===c));render();};
-  tabsEl.appendChild(b);
-});
-searchEl.addEventListener("input",e=>{query=e.target.value.trim().toLowerCase();render();});
-
-function bySlug(s){return GAMES.find(g=>g[0]===s);}
-/* No lock icons: every card renders unlocked, exactly like the reference card markup minus the lock overlay */
-function cardHTML(g, showArea){
-  const [slug,name,area,skill,,early]=g;
-  return `<button class="card" data-slug="${slug}" style="opacity:1;transform:none" aria-label="Play ${name}">
-    ${early?'<div class="early">Early Access</div>':''}
-    <span class="thumb"><img loading="lazy" width="160" height="112" src="assets/games/${slug}.svg" alt="${name}" onerror="this.style.visibility='hidden'"></span>
-    <h3>${name}</h3>
-    ${showArea?`<p class="cat">${area}</p>`:""}
-    <p class="skill">${skill}</p>
+function makeTabs(){
+  CATEGORIES.forEach(c=>{
+    const b = document.createElement("button");
+    b.type = "button";
+    b.dataset.cat = c;
+    b.textContent = c;
+    setTabState(b, c === activeCat);
+    b.addEventListener("click", ()=>{
+      activeCat = c;
+      tabsEl.querySelectorAll("button").forEach(x=>setTabState(x, x.dataset.cat === c));
+      render();
+    });
+    tabsEl.appendChild(b);
+  });
+}
+function setTabState(btn, active){
+  btn.className = active
+    ? "px-4 py-[10px] text-caption-1 font-semibold border-b-2 border-border-interactive text-text-interactive"
+    : "px-4 py-[10px] text-caption-1 font-semibold text-neutral-cool-60";
+}
+function card(slug, showArea){
+  const g = GAMES[slug]; if(!g) return "";
+  const [name, area, skill, , early] = g;
+  return `<button data-locked="false" data-gameslug="${slug}" class="block" style="opacity: 1; transform: none;">
+    <div class="w-[176px] p-2 relative transition-all duration-200 rounded-md cursor-pointer bg-transparent hover:bg-neutral-warm-95">
+      ${early ? '<div class="absolute top-1 left-1 z-1 text-xs font-semibold uppercase tracking-widest text-white text-center px-2 py-0.5 rounded-full" style="background-color: rgb(250, 100, 50);">Early Access</div>' : ""}
+      <div class="flex flex-col text-left pb-2">
+        <img src="assets/games/${slug}.svg" alt="${name.replace(/"/g,"&quot;")}" width="160" height="112" class="rounded-t-[4px] transition-all duration-200 scale-100">
+        <div class="mt-2 mb-0.5 text-base font-semibold text-text-default">${name}</div>
+        ${showArea ? `<div class="text-text-subdued text-xs font-semibold uppercase tracking-widest leading-4">${area}</div>` : ""}
+        <div class="text-text-subdued text-sm font-light">${skill}</div>
+      </div>
+    </div>
   </button>`;
 }
-function sectionHTML(title, games, showArea){
-  if(!games.length) return "";
-  return `<div class="section"><div class="section-head"><h2>${title}</h2></div><div class="grid">${games.map(g=>cardHTML(g,showArea)).join("")}</div></div>`;
+function section(title, slugs, showArea, extra){
+  return `<div class="w-full${extra||""}">
+    <div class="flex items-center leading-[0.1em]"><span class="text-subheading-1 text-text-default">${title}</span></div>
+    <div class="grid " style="grid-template-columns: repeat(auto-fit, 176px); gap: 16px 0px; margin-left: -8px; padding: 16px 0px; position: relative; place-items: flex-start;">${slugs.map(s=>card(s, showArea)).join("")}</div>
+  </div>`;
 }
 function render(){
-  const q=query;
-  const match=g=>!q||g[1].toLowerCase().includes(q)||g[3].toLowerCase().includes(q)||g[2].toLowerCase().includes(q);
-  if(q||activeCat!=="All"){
-    const games=GAMES.filter(g=>(activeCat==="All"||g[2]===activeCat)&&match(g));
-    contentEl.innerHTML=games.length
-      ? sectionHTML(q?`Search Results`:activeCat, games, true)
-      : `<div class="empty">No results for '${query||activeCat}'. Try searching for a game name like Eagle Eye.</div>`;
+  const q = query;
+  const matches = slug => {
+    if(!q) return true;
+    const g = GAMES[slug];
+    return (g[0]+" "+g[1]+" "+g[2]).toLowerCase().includes(q);
+  };
+
+  if(q || activeCat !== "All"){
+    let slugs = [];
+    if(activeCat === "All"){
+      slugs = Object.keys(GAMES).filter(matches);
+    } else {
+      const group = AREA_ORDER.find(a=>a[0] === activeCat);
+      slugs = group ? group[1].filter(matches) : [];
+    }
+    if(slugs.length){
+      sectionsEl.innerHTML = section(q ? "Search Results" : activeCat, slugs, true, " mb-6");
+    } else {
+      sectionsEl.innerHTML = `<div class="w-full mb-6"><div class="text-caption-1 text-text-subdued py-4">No results for '${(q || activeCat).replace(/</g,"&lt;")}'. Try searching for a game name like Eagle Eye.</div></div>`;
+    }
   } else {
-    const todays=TODAYS.map(bySlug).filter(Boolean);
-    const areas=["Speed","Memory","Attention","Flexibility","Reasoning","Math","Language"];
-    contentEl.innerHTML =
-      sectionHTML("Today's games", todays, true) +
-      areas.map(a=>sectionHTML(a, GAMES.filter(g=>g[2]===a), false)).join("");
+    sectionsEl.innerHTML =
+      section("Today's games", TODAYS, true, " mb-6") +
+      AREA_ORDER.map(([area, slugs]) => section(area, slugs, false)).join("");
   }
-  contentEl.querySelectorAll(".card").forEach(el=>{ el.onclick=()=>openModal(el.dataset.slug); });
+  sectionsEl.querySelectorAll("button[data-gameslug]").forEach(b=>{
+    b.addEventListener("click", ()=>openModal(b.dataset.gameslug));
+  });
 }
-const modalBack=document.getElementById("modalBack");
+
+const modalBack = document.getElementById("modalBack");
 function openModal(slug){
-  const g=bySlug(slug); if(!g)return;
-  document.getElementById("modalImg").src=`assets/games/${g[0]}.svg`;
-  document.getElementById("modalImg").alt=g[1];
-  document.getElementById("modalTitle").textContent=g[1];
-  document.getElementById("modalMeta").textContent=`${g[2]} · ${g[3]}${g[5]?" · Early Access":""} · unlocked`;
-  document.getElementById("modalDesc").textContent=g[4];
+  const g = GAMES[slug]; if(!g) return;
+  document.getElementById("modalImg").src = `assets/games/${slug}.svg`;
+  document.getElementById("modalImg").alt = g[0];
+  document.getElementById("modalTitle").textContent = g[0];
+  document.getElementById("modalMeta").textContent = `${g[1]} · ${g[2]}${g[4] ? " · Early Access" : ""}`;
+  document.getElementById("modalDesc").textContent = g[3];
   modalBack.classList.add("open");
 }
-document.getElementById("modalClose").onclick=()=>modalBack.classList.remove("open");
-modalBack.onclick=e=>{if(e.target===modalBack)modalBack.classList.remove("open");};
-document.addEventListener("keydown",e=>{if(e.key==="Escape")modalBack.classList.remove("open");});
-document.getElementById("modalPlay").onclick=()=>{
-  const d=document.getElementById("modalDesc");
-  if(!d.textContent.includes("Demo build")) d.textContent+="  (Demo build — full gameplay isn't bundled in this static port.)";
-};
+document.getElementById("modalClose").addEventListener("click", ()=>modalBack.classList.remove("open"));
+modalBack.addEventListener("click", e=>{ if(e.target === modalBack) modalBack.classList.remove("open"); });
+document.addEventListener("keydown", e=>{ if(e.key === "Escape") modalBack.classList.remove("open"); });
+document.getElementById("modalPlay").addEventListener("click", ()=>{
+  const d = document.getElementById("modalDesc");
+  if(!d.dataset.noted){
+    d.textContent += " (Static port — the game itself isn't bundled.)";
+    d.dataset.noted = "1";
+  }
+});
+searchEl.addEventListener("input", e=>{ query = e.target.value.trim().toLowerCase(); render(); });
+
+makeTabs();
 render();
 </script>
 </body>

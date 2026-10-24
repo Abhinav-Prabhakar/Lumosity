@@ -151,6 +151,12 @@ const GAMES = {
   "word-snatchers":["Word Snatchers","Language","Vocabulary","Exercise your Vocabulary by unscrambling the word.",0]
 };
 
+/* Cocos builds whose gameplay payload is not publicly retrievable — shown, not playable. */
+const UNDER_CONSTRUCTION = new Set([
+  "brain-shift-overdrive", "eagle-eye", "familiar-faces", "memory-match-overdrive",
+  "robot-factory", "rotation-matrix", "spatial-speed-match", "speed-match-overdrive"
+]);
+
 /* Games with a playable page in this build */
 const PLAYABLE = {
   "assist-ants": "games/assist-ants/",
@@ -239,17 +245,22 @@ function setTabState(btn, active){
 function card(slug, showArea){
   const g = GAMES[slug]; if(!g) return "";
   const [name, area, skill, , early] = g;
-  return `<button data-locked="false" data-gameslug="${slug}" class="block" style="opacity: 1; transform: none;">
-    <div class="w-[176px] p-2 relative transition-all duration-200 rounded-md cursor-pointer bg-transparent hover:bg-neutral-warm-95">
-      ${early ? '<div class="absolute top-1 left-1 z-1 text-xs font-semibold uppercase tracking-widest text-white text-center px-2 py-0.5 rounded-full" style="background-color: rgb(250, 100, 50);">Early Access</div>' : ""}
+  const soon = UNDER_CONSTRUCTION.has(slug);
+  const badge = soon
+    ? `<div class="absolute top-1 left-1 z-1 text-xs font-semibold uppercase tracking-widest text-white text-center px-2 py-0.5 rounded-full" style="background-color: #5b6b70;">Under construction</div>`
+    : (early ? `<div class="absolute top-1 left-1 z-1 text-xs font-semibold uppercase tracking-widest text-white text-center px-2 py-0.5 rounded-full" style="background-color: rgb(250, 100, 50);">Early Access</div>` : "");
+  const shell = `<div class="w-[176px] p-2 relative rounded-md bg-transparent ${soon ? "cursor-not-allowed select-none" : "transition-all duration-200 cursor-pointer hover:bg-neutral-warm-95"}"${soon ? ` style="opacity: .4; filter: grayscale(1);"` : ` style="opacity: 1; transform: none;"`}>
+      ${badge}
       <div class="flex flex-col text-left pb-2">
         <img src="assets/games/${slug}.svg" alt="${name.replace(/"/g,"&quot;")}" width="160" height="112" class="rounded-t-[4px] transition-all duration-200 scale-100">
         <div class="mt-2 mb-0.5 text-base font-semibold text-text-default">${name}</div>
         ${showArea ? `<div class="text-text-subdued text-xs font-semibold uppercase tracking-widest leading-4">${area}</div>` : ""}
         <div class="text-text-subdued text-sm font-light">${skill}</div>
       </div>
-    </div>
-  </button>`;
+    </div>`;
+  return soon
+    ? `<div class="block" aria-disabled="true" title="${name} — under construction">${shell}</div>`
+    : `<button data-locked="false" data-gameslug="${slug}" class="block">${shell}</button>`;
 }
 function section(title, slugs, showArea, extra){
   return `<div class="w-full${extra||""}">
@@ -316,6 +327,12 @@ searchEl.addEventListener("input", e=>{ query = e.target.value.trim().toLowerCas
 
 makeTabs();
 render();
+</script>
+<script>
+/* Warm up the brotli worker here so a game page is controlled on its first visit. */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js', { type: 'module' }).catch(function () {});
+}
 </script>
 </body>
 </html>

@@ -111,7 +111,8 @@ python3 -m http.server 8000     # then open http://localhost:8000
 **Brain Shift Overdrive**, **Eagle Eye**, **Familiar Faces**, **Memory Match Overdrive**, **Robot Factory**, **Rotation Matrix**, **Spatial Speed Match**, **Speed Match Overdrive** are Cocos Creator builds rather than Unity builds. Their launch scene loads, but the
 main gameplay scene (`WebScene`) returns `403 Access Denied` from Lumosity's asset host for every
 one of them — the payload is not publicly retrievable, so they cannot be mirrored faithfully.
-They still appear on the Training Games page, and open the game detail sheet instead of a player.
+They still appear on the Training Games page, greyed out and marked **Under construction**, and
+are not clickable.
 
 </details>
 
@@ -147,6 +148,11 @@ games/<slug>/SharedAssets/<name>/<hash>/<name>.bundle  ← 4 levels above Stream
 
 Get that depth wrong and the game boots to a black canvas. Get it right and it is byte-identical
 to the game on app.lumosity.com: same art, same animations, same sounds, same levels, same scoring.
+
+Three builds also pull per-round data on demand from a `dynamic` source that no manifest
+enumerates — Word Bubbles' 678 word lists, What's My Name's 444 face bundles. Those file names are
+recoverable from the builds' own string tables and data files, so the mirror walks them and stores
+the complete set rather than only the handful any one play session happens to touch.
 
 ### 2. Brotli is decompressed in the browser
 

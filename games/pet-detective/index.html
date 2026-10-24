@@ -114,21 +114,25 @@
   }
 
   // The compressed payload is served by sw.js, so the worker has to control
-  // this page before we ask for the first .wasm / .bundle.
+  // this page before we ask for the first .wasm / .bundle. A cold first visit
+  // can finish loading before the worker activates, so fall back to one reload.
   function withServiceWorker() {
-    if (!('serviceWorker' in navigator)) return Promise.resolve();
+    if (!('serviceWorker' in navigator)) return start();
     return navigator.serviceWorker.register('../../sw.js', { type: 'module' })
       .then(function () { return navigator.serviceWorker.ready; })
       .then(function () {
-        if (navigator.serviceWorker.controller) return;
-        return new Promise(function (done) {
-          var timer = setTimeout(done, 3000);
-          navigator.serviceWorker.addEventListener('controllerchange', function () {
-            clearTimeout(timer); done();
-          }, { once: true });
+        if (navigator.serviceWorker.controller) return start();
+        return new Promise(function () {
+          navigator.serviceWorker.addEventListener('controllerchange', start, { once: true });
+          setTimeout(function () {
+            if (navigator.serviceWorker.controller) return start();
+            if (sessionStorage.getItem('sw-retry')) return start();
+            sessionStorage.setItem('sw-retry', '1');
+            location.reload();
+          }, 5000);
         });
       })
-      .catch(function () { /* fall back to plain files */ });
+      .catch(function () { start(); });
   }
 
   function start() {
@@ -154,7 +158,7 @@
     s.onerror = function () { fail('could not load unity/game.js'); };
     document.body.appendChild(s);
   }
-  withServiceWorker().then(start);
+  withServiceWorker();
 </script>
 </body>
 </html>

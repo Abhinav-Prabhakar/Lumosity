@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Word Bubbles — Lumosity</title>
+<link rel="icon" href="../../assets/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon-32x32.png">
+<link rel="apple-touch-icon" href="../../assets/favicon-48x48.png">
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; overflow: hidden;
+    background: #061a20;
+    font-family: "MuseoSans", "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  #stage {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at 50% 42%, rgba(14,35,55,0.55) 0%, #07222a 58%, #041217 100%);
+  }
+  #game {
+    position: relative;
+    width: min(100vw, calc(100vh * 4 / 3));
+    height: min(100vh, calc(100vw * 3 / 4));
+    background: #08090f;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, .5);
+    overflow: hidden;
+  }
+  @media (max-aspect-ratio: 4/3) { #game { box-shadow: none; } }
+  #unity-canvas, #gameCanvas { display: block; width: 100%; height: 100%; outline: none; }
+
+  .exit {
+    position: absolute; top: 18px; left: 22px; z-index: 20;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 9px 16px 9px 12px;
+    border: 0; border-radius: 999px;
+    background: rgba(4, 30, 36, .4);
+    color: #fff; font-size: 13px; font-weight: 700;
+    letter-spacing: .11em; text-transform: uppercase;
+    text-decoration: none; cursor: pointer;
+    transition: background .15s ease;
+    backdrop-filter: blur(6px);
+  }
+  .exit:hover { background: rgba(4, 30, 36, .65); }
+  .exit svg { width: 14px; height: 14px; }
+
+  #loader {
+    position: absolute; inset: 0; z-index: 30;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 26px;
+    background: radial-gradient(ellipse at 50% 45%, rgba(14,35,55,0.55) 0%, #07222a 62%, #041217 100%);
+    color: #fff; transition: opacity .45s ease, visibility .45s ease;
+  }
+  #loader.done { opacity: 0; visibility: hidden; pointer-events: none; }
+  .mark { font-size: 30px; font-weight: 700; letter-spacing: -.02em; }
+  .mark span { color: #929ca5; }
+  .game-name { font-size: 13px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; opacity: .62; }
+  .bar { width: min(300px, 62vw); height: 6px; border-radius: 99px; background: rgba(255,255,255,.18); overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 0%; border-radius: 99px; background: #fff; transition: width .2s ease; }
+  #pct { font-size: 13px; font-weight: 700; letter-spacing: .14em; opacity: .72; }
+  #err { position: absolute; inset: auto 24px 24px; z-index: 40; color: #ffd9d4; font-size: 13px; text-align: center; display: none; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="game">
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+
+    <a class="exit" href="../../index.html" aria-label="Exit to training games">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      Exit
+    </a>
+
+    <div id="loader">
+      <div class="mark">Lumo<span>sity</span></div>
+      <div class="game-name">Word Bubbles</div>
+      <div class="bar"><i id="bar"></i></div>
+      <div id="pct">LOADING 0%</div>
+    </div>
+    <div id="err"></div>
+  </div>
+</div>
+
+<script>
+  window.dispatchReactUnityEvent = function () {};
+  // Cocos builds read the host-provided globals.
+  window.Lumos = { gamevars: { game_resources_url: 'cocos/', game_param: "word-bubbles" } };
+
+  var loader = document.getElementById('loader');
+  var bar = document.getElementById('bar');
+  var pct = document.getElementById('pct');
+  var err = document.getElementById('err');
+
+  function progress(value) {
+    var n = Math.max(0, Math.min(100, Math.round(value * 100)));
+    bar.style.width = n + '%';
+    pct.textContent = 'LOADING ' + n + '%';
+    return n;
+  }
+
+  function finish() {
+    progress(1);
+    loader.classList.add('done');
+    var canvas = document.querySelector('canvas');
+    if (canvas) canvas.style.visibility = 'visible';
+  }
+
+  function fail(message) {
+    err.style.display = 'block';
+    err.textContent = 'Could not start the game: ' + message;
+  }
+
+  // The compressed payload is served by sw.js, so the worker has to control
+  // this page before we ask for the first .wasm / .bundle.
+  function withServiceWorker() {
+    if (!('serviceWorker' in navigator)) return Promise.resolve();
+    return navigator.serviceWorker.register('../../sw.js', { type: 'module' })
+      .then(function () { return navigator.serviceWorker.ready; })
+      .then(function () {
+        if (navigator.serviceWorker.controller) return;
+        return new Promise(function (done) {
+          var timer = setTimeout(done, 3000);
+          navigator.serviceWorker.addEventListener('controllerchange', function () {
+            clearTimeout(timer); done();
+          }, { once: true });
+        });
+      })
+      .catch(function () { /* fall back to plain files */ });
+  }
+
+  function start() {
+    var s = document.createElement('script');
+    s.src = 'unity/game.js';
+    s.onload = function () {
+      if (typeof createUnityInstance !== 'function') { fail('loader missing'); return; }
+      createUnityInstance(document.getElementById('unity-canvas'), {
+        dataUrl: 'unity/game.data',
+        frameworkUrl: 'unity/game.framework.js',
+        codeUrl: 'unity/game.wasm',
+        streamingAssetsUrl: 'unity/rel/4.25.2/StreamingAssets',
+        companyName: 'Lumosity',
+        productName: "Word Bubbles",
+        productVersion: '4.25.2',
+        devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2)
+      }, function (p) { progress(p); }).then(function (instance) {
+        window.unityInstance = instance;
+        finish();
+        try { instance.SendMessage('AppInterface', 'LoadGame', '{}'); } catch (e) {}
+      }).catch(function (e) { fail(String((e && e.message) || e)); });
+    };
+    s.onerror = function () { fail('could not load unity/game.js'); };
+    document.body.appendChild(s);
+  }
+  withServiceWorker().then(start);
+</script>
+</body>
+</html>

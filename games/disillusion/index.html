@@ -25,12 +25,12 @@
     position: relative;
     width: min(100vw, calc(100vh * 4 / 3));
     height: min(100vh, calc(100vw * 3 / 4));
-    background: #06222a;
+    background: #081316;
     box-shadow: 0 24px 80px rgba(0, 0, 0, .5);
     overflow: hidden;
   }
   @media (max-aspect-ratio: 4/3) { #game { box-shadow: none; } }
-  #unity-canvas { display: block; width: 100%; height: 100%; outline: none; }
+  #unity-canvas, #gameCanvas { display: block; width: 100%; height: 100%; outline: none; }
 
   .exit {
     position: absolute; top: 18px; left: 22px; z-index: 20;
@@ -86,18 +86,52 @@
 
 <script>
   window.dispatchReactUnityEvent = function () {};
+  // Cocos builds read the host-provided globals.
+  window.Lumos = { gamevars: { game_resources_url: 'cocos/', game_param: "disillusion" } };
 
-  (function () {
-    var loader = document.getElementById('loader');
-    var bar = document.getElementById('bar');
-    var pct = document.getElementById('pct');
-    var err = document.getElementById('err');
+  var loader = document.getElementById('loader');
+  var bar = document.getElementById('bar');
+  var pct = document.getElementById('pct');
+  var err = document.getElementById('err');
 
-    function fail(message) {
-      err.style.display = 'block';
-      err.textContent = 'Could not start the game: ' + message;
-    }
+  function progress(value) {
+    var n = Math.max(0, Math.min(100, Math.round(value * 100)));
+    bar.style.width = n + '%';
+    pct.textContent = 'LOADING ' + n + '%';
+    return n;
+  }
 
+  function finish() {
+    progress(1);
+    loader.classList.add('done');
+    var canvas = document.querySelector('canvas');
+    if (canvas) canvas.style.visibility = 'visible';
+  }
+
+  function fail(message) {
+    err.style.display = 'block';
+    err.textContent = 'Could not start the game: ' + message;
+  }
+
+  // The compressed payload is served by sw.js, so the worker has to control
+  // this page before we ask for the first .wasm / .bundle.
+  function withServiceWorker() {
+    if (!('serviceWorker' in navigator)) return Promise.resolve();
+    return navigator.serviceWorker.register('../../sw.js', { type: 'module' })
+      .then(function () { return navigator.serviceWorker.ready; })
+      .then(function () {
+        if (navigator.serviceWorker.controller) return;
+        return new Promise(function (done) {
+          var timer = setTimeout(done, 3000);
+          navigator.serviceWorker.addEventListener('controllerchange', function () {
+            clearTimeout(timer); done();
+          }, { once: true });
+        });
+      })
+      .catch(function () { /* fall back to plain files */ });
+  }
+
+  function start() {
     var s = document.createElement('script');
     s.src = 'unity/game.js';
     s.onload = function () {
@@ -111,21 +145,16 @@
         productName: "Disillusion",
         productVersion: '4.21.3',
         devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2)
-      }, function (progress) {
-        var n = Math.round(progress * 100);
-        bar.style.width = n + '%';
-        pct.textContent = 'LOADING ' + n + '%';
-      }).then(function (instance) {
+      }, function (p) { progress(p); }).then(function (instance) {
         window.unityInstance = instance;
-        loader.classList.add('done');
+        finish();
         try { instance.SendMessage('AppInterface', 'LoadGame', '{}'); } catch (e) {}
-      }).catch(function (e) {
-        fail(String(e && e.message || e));
-      });
+      }).catch(function (e) { fail(String((e && e.message) || e)); });
     };
     s.onerror = function () { fail('could not load unity/game.js'); };
     document.body.appendChild(s);
-  })();
+  }
+  withServiceWorker().then(start);
 </script>
 </body>
 </html>

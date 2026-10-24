@@ -161,8 +161,8 @@ So the repository keeps only the compressed files and decompresses them on the w
 - Wrapper pages wait for `navigator.serviceWorker.ready` before starting the player, so the first
   request is already intercepted — no reload, no race.
 
-That is the difference between ~5 GB of assets and about 1 GB, which is what makes archiving the
-whole catalogue practical. It also means the site works from any plain static file server,
+That is the difference between roughly 5 GB of game data and 839 MB, which is what makes archiving
+the whole catalogue practical. It also means the site works from any plain static file server,
 including `python3 -m http.server`.
 
 ### 3. The shell is the only thing that is ours
@@ -199,8 +199,8 @@ games/<slug>/SharedAssets/    shared Unity asset bundles (.br)
 ## Notes
 
 - Everything is a static file. There is no build step and no dependency to install.
-- The site is served from GitHub Pages; cloning is the more reliable option, since the checkout is
-  larger than the Pages soft limit.
+- The checkout is 839 MB, which sits just under GitHub Pages' 1 GB site limit. If the hosted copy
+  ever gets rejected, clone the repo and serve it locally instead — the site is identical.
 - Reference material gathered while reverse-engineering the layout lives in `.l2ref/`, which is
   ignored by git and never published.
 

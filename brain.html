@@ -6,42 +6,45 @@
 <link rel="icon" href="assets/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="l2.css">
 <style>
-  .brain-wrap{max-width:1320px;margin:0 auto;padding:24px 24px 60px}
-  @media(min-width:640px){.brain-wrap{padding:24px 32px 60px}}
-  .brain-title{font-size:32px;font-weight:700;margin:8px 0 22px}
-  .brain-tabs{display:flex;gap:36px;border-bottom:1px solid #e8e4da;margin-bottom:28px}
-  .brain-tabs a{position:relative;padding:10px 2px 14px;font-size:14px;font-weight:700;letter-spacing:.06em;color:#6f6a5e;text-decoration:none}
-  .brain-tabs a.active{color:#0c1f31}
-  .brain-tabs a.active::after{content:"";position:absolute;left:-2px;right:-2px;bottom:-1px;height:3px;background:#fa6432;border-radius:2px}
-  .brain-tabs a:hover{color:#0c1f31}
+  body { margin: 0; background: #fbfaf6; }
+  .brain-wrap { max-width: 1320px; margin: 0 auto; padding: 24px 24px 60px; }
+  @media (min-width: 640px) { .brain-wrap { padding: 24px 32px 60px; } }
+  .brain-title { font-size: 32px; font-weight: 700; margin: 8px 0 22px; color: #0c1f31; }
+  .brain-tabs { display: flex; gap: 4px; border-bottom: 1px solid #e8e4da; margin-bottom: 24px; flex-wrap: wrap; }
+  .brain-tabs button { position: relative; padding: 10px 16px 14px; font-size: 13px; font-weight: 700; letter-spacing: .06em; color: #9a9ea2; background: none; border: 0; cursor: pointer; font-family: inherit; text-transform: uppercase; }
+  .brain-tabs button.active { color: #0c1f31; }
+  .brain-tabs button.active::after { content: ""; position: absolute; left: 8px; right: 8px; bottom: -1px; height: 3px; background: #fa6432; border-radius: 2px; }
+  .brain-tabs button:hover { color: #0c1f31; }
 
-  /* Lumosity Performance Index card */
-  .lpi-card{background:#fff;border:1px solid #e6e2d8;border-radius:8px;overflow:hidden;max-width:1120px}
-  .lpi-head{display:flex;align-items:center;gap:10px;padding:22px 26px;border-bottom:1px solid #eeeae1}
-  .lpi-head .bolt{display:flex;color:#f5c343}
-  .lpi-head h2{margin:0;font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5c6670}
-  .lpi-head .info{margin-left:auto;display:flex;color:#b9c0c7;background:none;border:0;cursor:pointer;padding:2px}
-  .lpi-head .info:hover{color:#6f6a5e}
-
-  .lpi-row{display:flex;align-items:center;gap:18px;padding:22px 26px;border-top:1px solid #eeeae1;cursor:pointer;text-align:left;background:none;border-left:0;border-right:0;border-bottom:0;width:100%;font-family:inherit}
-  .lpi-row:first-of-type{border-top:0}
-  .lpi-row:hover{background:#fbfaf6}
-  .lpi-body{flex:1;min-width:0}
-  .lpi-label{font-size:18px;font-weight:600;color:#0c1f31;margin-bottom:10px}
-  .lpi-row.overall .lpi-label{font-size:20px;font-weight:700;margin-bottom:12px}
-  .lpi-track{height:20px;border-radius:3px;background:#f4f2f1;overflow:hidden}
-  .lpi-row.overall .lpi-track{height:32px}
-  .lpi-fill{height:100%;border-radius:3px;background:#f7d05a;transition:width .6s cubic-bezier(.22,.61,.36,1)}
-  .lpi-val{font-size:17px;font-weight:700;color:#0c1f31;font-variant-numeric:tabular-nums;min-width:52px;text-align:right}
-  .lpi-row.overall .lpi-val{font-size:32px;min-width:86px}
-  .lpi-chev{color:#9aa3ad;display:flex}
-  .lpi-row.overall .lpi-chev{color:#0c1f31}
-
-  .lpi-foot{display:flex;flex-wrap:wrap;gap:10px 26px;padding:18px 26px;border-top:1px solid #eeeae1;font-size:13px;color:#6f6a5e}
-  .lpi-foot b{color:#0c1f31}
-  .note{max-width:1120px;margin:18px 0 0;font-size:13px;color:#6f6a5e}
+  .lpi-card { width: 100%; max-width: 448px; }
+  .lpi-head { display: flex; align-items: center; gap: 10px; padding: 16px 18px 16px 24px; border-bottom: 1px solid #eeeae1; }
+  .lpi-head h2 { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; color: #6f6a5e; }
+  .lpi-head .info { margin-left: auto; border: 0; background: none; color: #b5b8ba; cursor: pointer; padding: 2px; display: flex; }
+  .lpi-head .info:hover { color: #6f6a5e; }
+  .lpi-row { display: flex; align-items: center; gap: 16px; padding: 20px 20px 20px 24px; border-top: 1px solid #eeeae1; cursor: pointer; text-align: left; background: none; border-left: 0; border-right: 0; border-bottom: 0; width: 100%; font-family: inherit; }
+  .lpi-row:first-of-type { border-top: 0; }
+  .lpi-row:hover { background: #fbfaf6; }
+  .lpi-row.overall { padding-top: 20px; padding-bottom: 20px; }
+  .lpi-body { flex: 1; min-width: 0; }
+  .lpi-label { font-size: 18px; font-weight: 600; color: #0c1f31; margin-bottom: 8px; }
+  .lpi-row.overall .lpi-label { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+  .lpi-track { height: 18px; border-radius: 3px; background: #f4f2f1; overflow: hidden; display: flex; align-items: center; }
+  .lpi-row.overall .lpi-track { height: 24px; background: transparent; }
+  .lpi-fill { height: 100%; border-radius: 3px; background-image: var(--background-image-yellow-gradient-2); transition: width .7s cubic-bezier(.22,.61,.36,1); min-width: 0; }
+  .lpi-val { font-size: 17px; font-weight: 700; color: #0c1f31; font-variant-numeric: tabular-nums; min-width: 52px; text-align: right; }
+  .lpi-row.overall .lpi-val { font-size: 26px; min-width: 86px; }
+  .lpi-chev { color: #9aa3ad; display: flex; }
+  .lpi-row.overall .lpi-chev { color: #0c1f31; }
+  .lpi-foot { display: flex; flex-wrap: wrap; gap: 10px 26px; padding: 16px 24px; border-top: 1px solid #eeeae1; font-size: 12px; color: #6f6a5e; }
+  .lpi-foot b { color: #0c1f31; }
+  .l2-lpi-explainer { padding: 14px 24px; border-bottom: 1px solid #eeeae1; background: #fbfaf6; font-size: 12px; line-height: 1.5; color: #6f6a5e; }
+  .l2-lpi-explainer[hidden] { display: none; }
+  .note { max-width: 1120px; margin: 18px 0 0; font-size: 13px; color: #6f6a5e; line-height: 1.5; }
+  .l2-brain-card { max-width: 1120px; }
 </style>
 </head>
 <body>
@@ -51,71 +54,115 @@
   </a>
   <div class="flex flex-row items-center gap-6">
     <a href="./" class="text-caption-1 font-semibold text-text-subdued no-underline hover:text-text-default">Training Games</a>
+    <a href="brain.html" class="text-caption-1 font-semibold text-text-default no-underline" aria-current="page">My Brain</a>
   </div>
 </nav>
 
 <main class="brain-wrap">
   <h1 class="brain-title">My Brain</h1>
 
-  <div class="brain-tabs">
-    <a href="#" class="active">LPI</a>
-    <a href="#">TRAINING</a>
-    <a href="#">COLLECTIONS</a>
-    <a href="#">INSIGHTS</a>
+  <section class="l2-brain-stats" aria-label="Training summary">
+    <div class="l2-brain-stat"><span>Sessions</span><b id="total-sessions">0</b></div>
+    <div class="l2-brain-stat"><span>Points earned</span><b id="total-points">0</b></div>
+    <div class="l2-brain-stat"><span>Games trained</span><b id="total-games">0/45</b></div>
+    <div class="l2-brain-stat"><span>Current streak</span><b id="streak-days">—</b></div>
+  </section>
+
+  <div class="brain-tabs" role="tablist" aria-label="My Brain sections">
+    <button type="button" role="tab" id="tab-lpi" aria-controls="tab-lpi" aria-selected="true" data-brain-tab="lpi" class="active">LPI</button>
+    <button type="button" role="tab" id="tab-training" aria-controls="tab-training" aria-selected="false" data-brain-tab="training">Training</button>
+    <button type="button" role="tab" id="tab-collections" aria-controls="tab-collections" aria-selected="false" data-brain-tab="collections">Collections</button>
+    <button type="button" role="tab" id="tab-insights" aria-controls="tab-insights" aria-selected="false" data-brain-tab="insights">Insights</button>
   </div>
 
-  <section class="lpi-card" aria-labelledby="lpiHeading">
-    <div class="lpi-head">
-      <span class="bolt" aria-hidden="true">
-        <svg width="22" height="30" viewBox="0 0 16 25" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.83105 0.634089C10.7621 -0.669377 12.814 0.198283 12.5275 1.77427L11.1414 9.39756H15.8117L6.06744 24.014C5.17088 25.3588 3.07406 24.5296 3.33977 22.9353L4.76273 14.3976H0L9.83105 0.634089Z" fill="url(#lpiBolt)"/><defs><linearGradient id="lpiBolt" x1="14" y1="2" x2="-22.0586" y2="40.2022" gradientUnits="userSpaceOnUse"><stop stop-color="#FFD670"/><stop offset="0.236954" stop-color="#FFCD3D"/><stop offset="1" stop-color="#FD6533"/></linearGradient></defs></svg>
-      </span>
-      <h2 id="lpiHeading">Lumosity Performance Index</h2>
-      <button class="info" title="About the LPI" aria-label="About the LPI">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9.4" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="7.9" r="1.15" fill="currentColor"/><path d="M12 11v5.4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
-      </button>
-    </div>
+  <section class="l2-tabpanel l2-brain-panel" data-brain-panel="lpi" id="panel-lpi">
+    <div class="flex flex-col lg:flex-row gap-4">
+      <div class="w-full lg:max-w-[448px] flex flex-col gap-4">
+        <div class="lpi-card w-full shadow-drop-shadow-1 border border-border-subdued bg-surface-default rounded-lg overflow-hidden">
+          <div class="lpi-head">
+            <svg width="16" height="25" viewBox="0 0 16 25" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width:16px;height:24px;flex:0 0 auto;">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M9.83105 0.634089C10.7621 -0.669377 12.814 0.198283 12.5275 1.77427L11.1414 9.39756H15.8117L6.06744 24.014C5.17088 25.3588 3.07406 24.5296 3.33977 22.9353L4.76273 14.3976H0L9.83105 0.634089Z" fill="url(#lpiBoltGrad)"/>
+              <defs><linearGradient id="lpiBoltGrad" x1="14" y1="2" x2="-22.0586" y2="40.2022" gradientUnits="userSpaceOnUse"><stop stop-color="#FFD670"/><stop offset="0.236954" stop-color="#FFCD3D"/><stop offset="1" stop-color="#FD6533"/></linearGradient></defs>
+            </svg>
+            <h2>Lumosity Performance Index</h2>
+            <button class="info" type="button" title="About the LPI" aria-label="About the LPI">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9.4" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="7.9" r="1.15" fill="currentColor"/><path d="M12 11v5.4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+            </button>
+          </div>
 
-    <button class="lpi-row overall">
-      <div class="lpi-body">
-        <div class="lpi-label">Overall LPI</div>
-        <div class="lpi-track"><div class="lpi-fill" data-value="1657"></div></div>
+          <div id="lpi-explainer" class="l2-lpi-explainer" hidden>
+            Your LPI is estimated from the scores and levels saved in this browser. Each game score is placed on a comparable curve, area LPIs average the games you have played in that area, and overall LPI averages the areas. It uses Lumosity's 0–2000 scale but is not an official Lumosity score.
+          </div>
+
+          <button class="lpi-row overall" type="button">
+            <div class="lpi-body">
+              <div class="lpi-label">Overall LPI</div>
+              <div class="lpi-track"><div class="lpi-fill" id="lpi-overall-bar"></div></div>
+            </div>
+            <div class="lpi-val" id="lpi-overall">—</div>
+            <span class="lpi-chev" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </button>
+
+          <div id="lpi-areas" class="flex flex-col w-full pl-12 pb-2"></div>
+
+          <div class="lpi-foot">
+            <span>First LPI <b id="lpi-first">—</b></span>
+            <span>Best LPI <b id="lpi-best">—</b></span>
+          </div>
+        </div>
+        <p class="note" id="lpi-note" style="margin:0;">Play a game to establish your LPI.</p>
       </div>
-      <div class="lpi-val">1657</div>
-      <span class="lpi-chev" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-    </button>
 
-    <button class="lpi-row"><div class="lpi-body"><div class="lpi-label">Speed</div><div class="lpi-track"><div class="lpi-fill" data-value="1734"></div></div></div><div class="lpi-val">1734</div><span class="lpi-chev" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
-
-    <button class="lpi-row"><div class="lpi-body"><div class="lpi-label">Memory</div><div class="lpi-track"><div class="lpi-fill" data-value="1670"></div></div></div><div class="lpi-val">1670</div><span class="lpi-chev" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
-
-    <button class="lpi-row"><div class="lpi-body"><div class="lpi-label">Attention</div><div class="lpi-track"><div class="lpi-fill" data-value="1733"></div></div></div><div class="lpi-val">1733</div><span class="lpi-chev" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
-
-    <button class="lpi-row"><div class="lpi-body"><div class="lpi-label">Flexibility</div><div class="lpi-track"><div class="lpi-fill" data-value="1625"></div></div></div><div class="lpi-val">1625</div><span class="lpi-chev" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
-
-    <button class="lpi-row"><div class="lpi-body"><div class="lpi-label">Reasoning</div><div class="lpi-track"><div class="lpi-fill" data-value="1619"></div></div></div><div class="lpi-val">1619</div><span class="lpi-chev" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
-
-    <button class="lpi-row"><div class="lpi-body"><div class="lpi-label">Math</div><div class="lpi-track"><div class="lpi-fill" data-value="1486"></div></div></div><div class="lpi-val">1486</div><span class="lpi-chev" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
-
-    <div class="lpi-foot">
-      <span>First LPI <b>693</b></span>
-      <span>Best LPI <b>1666</b></span>
+      <div class="flex-1 flex flex-col gap-4 min-w-0">
+        <div class="l2-brain-grid" style="margin:0; max-width:none;">
+          <div class="l2-brain-card">
+            <div class="l2-brain-card-head"><h2>LPI history</h2><span id="lpi-history-meta">No history yet.</span></div>
+            <div class="l2-brain-card-body" id="lpi-chart"></div>
+          </div>
+          <div class="l2-brain-card">
+            <div class="l2-brain-card-head"><h2>Most improved games</h2><span>First vs latest</span></div>
+            <div class="l2-brain-card-body" id="lpi-improved"></div>
+          </div>
+        </div>
+        <div class="l2-brain-card">
+          <div class="l2-brain-card-head"><h2>Game rankings</h2><span>Your game LPIs</span></div>
+          <div class="l2-brain-card-body" id="lpi-rankings"></div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <p class="note">LPI is a standardized 0–2000 scale calculated from your game scores. Area LPIs are averaged from the games that train them.</p>
+  <section class="l2-tabpanel l2-brain-panel" data-brain-panel="training" id="panel-training" hidden>
+    <div class="l2-brain-card">
+      <div class="l2-brain-card-head"><h2>Training history</h2><span>Every game, every score you have saved locally</span></div>
+      <div class="l2-brain-card-body">
+        <div class="l2-filter-row" id="training-areas"></div>
+        <div id="training-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="l2-tabpanel l2-brain-panel" data-brain-panel="collections" id="panel-collections" hidden>
+    <div class="l2-brain-card">
+      <div class="l2-brain-card-head"><h2>Collections</h2><span>Your progress by cognitive area</span></div>
+      <div class="l2-brain-card-body"><div id="collections-list"></div></div>
+    </div>
+  </section>
+
+  <section class="l2-tabpanel l2-brain-panel" data-brain-panel="insights" id="panel-insights" hidden>
+    <div class="l2-brain-card">
+      <div class="l2-brain-card-head"><h2>Insights</h2><span>Patterns from your local training</span></div>
+      <div class="l2-brain-card-body"><div id="insights-list"></div></div>
+    </div>
+  </section>
+
+  <p class="l2-data-note" id="data-note"><span id="data-note-text">Stored in this browser · no sessions yet</span> <button type="button" id="reset-data">Reset local data</button></p>
+  <p class="note">The LPI is a local estimate on Lumosity's 0–2000 scale, computed from the scores and levels saved in this browser. Area LPIs are averaged from the games you have played in that area. Nothing is sent to a server.</p>
 </main>
 
-<script>
-  // Bars are drawn against the 0–2000 LPI scale. rAF animates; the timeout guarantees
-  // the final width even when the tab is throttled in the background.
-  const paintBars = () => {
-    document.querySelectorAll('.lpi-fill').forEach(el => {
-      const v = Math.min(2000, Math.max(0, +el.dataset.value || 0));
-      el.style.width = (v / 2000 * 100).toFixed(2) + '%';
-    });
-  };
-  requestAnimationFrame(paintBars);
-  setTimeout(paintBars, 60);
+<script type="module">
+  import { initBrainPage } from "./l2.js";
+  initBrainPage();
 </script>
 </body>
 </html>

@@ -16,10 +16,39 @@ python3 -m http.server 8000     # then open http://localhost:8000
 
 | | |
 | :--- | :--- |
-| **Training Games** | `index.html` — the games grid: logo-only header, working search, category filters, no lock icons. |
+| **Training Games** | `index.html` — the games grid: logo and My Brain header, working search, category filters, no lock icons. Played games show their current level and best score. |
+| **Game pages** | `game/<slug>/` — a page for every playable game, modelled on `app.lumosity.com/game/<slug>`: hero, skill explainer, Play, How to Play, Game LPI, total plays, best score, level and a local leaderboard. |
 | **Playable games** | One shell per game under `games/<slug>/` — a 4:3 stage, a Lumosity-style loader and an Exit button wrapped around the real build. |
-| **My Brain** | `brain.html` — the Lumosity Performance Index card, with per-area bars and first/best LPI. |
+| **My Brain** | `brain.html` — a live Lumosity Performance Index card with per-area bars, first/best LPI, history, training log, collections and insights, all computed from the scores saved in your browser. |
+| **Results** | When a session ends, a results screen shows the score, personal best, level progress, LPI change and your top runs. Scores and levels persist between visits. |
 | **Original CSS** | `styles.css` is Lumosity's compiled stylesheet with Museo Sans bundled locally, so type, spacing and colour match the product. |
+
+## Progress, scores and LPI
+
+There is no account and no server, but the local build keeps the parts of the
+Lumosity loop that make the games feel like training rather than demos:
+
+- **Scores are saved** after every completed session, in `localStorage` under
+  `lumosity.local.v1`. The results screen confirms the save and shows your
+  personal best and a local leaderboard of your top runs.
+- **Levels are remembered.** The next launch passes the saved level back to the
+  Unity build through `AppInterface.LoadGame`, so games resume at the level you
+  reached instead of starting over. A replay of an older level never throws
+  away progress.
+- **My Brain is live.** Overall LPI, area LPIs, first/best LPI, history, game
+  rankings and most-improved games are all derived from the same saved
+  sessions. Nothing on the page is hard-coded; with no sessions it shows an
+  empty state instead of a fake number.
+- **The LPI is a local estimate.** Lumosity's production LPI is a proprietary
+  standardised score computed by its backend. This mirror uses a transparent
+  0–2000 estimate: each game score is mapped through a saturating curve using
+  that game's typical score, with a floor from the highest level reached. Area
+  LPI is the mean of the played games in that area; overall LPI is the mean of
+  the played areas. It is consistent and useful for tracking your own progress,
+  but it is not Lumosity's official number.
+- **Reset when you want.** My Brain has a “Reset local data” link that clears
+  scores, levels and LPI history for the browser.
+
 
 ## The games
 
@@ -171,11 +200,18 @@ That is the difference between roughly 5 GB of game data and 839 MB, which is wh
 the whole catalogue practical. It also means the site works from any plain static file server,
 including `python3 -m http.server`.
 
-### 3. The shell is the only thing that is ours
+### 3. The shell and the local account layer are the only things that are ours
 
 Each `games/<slug>/index.html` is generated, not vendored. It provides the stage, the loader, the
-Exit link, and the single host hook the build expects (`AppInterface.LoadGame`) — then hands the
-canvas to the real player. Everything inside the canvas is Lumosity's.
+Exit link, the results overlay, and the single host hook the build expects
+(`AppInterface.LoadGame`) — then hands the canvas to the real player. Everything inside the canvas
+is Lumosity's.
+
+`l2.js` is the small local account layer around those builds. It converts the Unity events
+(`onSessionStarted`, `onSessionEnded`, `onGameExited`) into saved sessions, remembers the highest
+unlocked level, builds the `player_state` the next launch needs, computes the local LPI, and renders
+the results screen. The pages under `game/<slug>/`, `brain.html` and the Training Games grid all read
+the same store, so a score saved in a game immediately shows up in My Brain and on that game's page.
 
 ## Run it
 
@@ -192,11 +228,15 @@ service worker, none of which work from a `file://` URL.
 
 ```
 index.html                    Training Games grid
+game/<slug>/index.html        Game detail page (hero, Play, local stats, leaderboard)
 brain.html                    My Brain / Lumosity Performance Index
+l2.js                         Local account layer: saves, levels, LPI, results
+l2-games.js                   Game metadata and skill descriptions
+l2.css                        Shared styles for the detail, results and My Brain UI
 styles.css                    Lumosity's compiled stylesheet
 sw.js                         brotli service worker
 vendor/brotli/                brotli decoder (WASM)
-assets/                       fonts, icons, game thumbnails
+assets/                       fonts, icons, game thumbnails and hero art
 games/<slug>/index.html       generated game shell
 games/<slug>/unity/           Unity player + scene bundles (.br)
 games/<slug>/SharedAssets/    shared Unity asset bundles (.br)
@@ -205,6 +245,10 @@ games/<slug>/SharedAssets/    shared Unity asset bundles (.br)
 ## Notes
 
 - Everything is a static file. There is no build step and no dependency to install.
+- Progress lives in the browser's `localStorage` (`lumosity.local.v1`). Clearing site data resets
+  scores, levels and LPI. There is no account and no network sync.
+- The game-detail pages are generated from `index.html`'s game table and `.l2ref/catalog.json`; the
+  checked-in files under `game/<slug>/` are all static.
 - The checkout is 839 MB, which sits just under GitHub Pages' 1 GB site limit. If the hosted copy
   ever gets rejected, clone the repo and serve it locally instead — the site is identical.
 - Reference material gathered while reverse-engineering the layout lives in `.l2ref/`, which is

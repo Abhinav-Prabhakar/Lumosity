@@ -63,13 +63,14 @@
   #pct { font-size: 13px; font-weight: 700; letter-spacing: .14em; opacity: .72; }
   #err { position: absolute; inset: auto 24px 24px; z-index: 40; color: #ffd9d4; font-size: 13px; text-align: center; display: none; }
 </style>
+<link rel="stylesheet" href="../../l2.css">
 </head>
 <body>
 <div id="stage">
   <div id="game">
     <canvas id="unity-canvas" tabindex="-1"></canvas>
 
-    <a class="exit" href="../../index.html" aria-label="Exit to training games">
+    <a class="exit" href="../../game/chalkboard-challenge/" aria-label="Exit to chalkboard challenge game page">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
       Exit
     </a>
@@ -84,8 +85,11 @@
   </div>
 </div>
 
-<script>
-  window.dispatchReactUnityEvent = function () {};
+<script type="module">
+  import { createGameShell } from '../../l2.js';
+  const l2shell = createGameShell('chalkboard-challenge');
+
+  window.dispatchReactUnityEvent = l2shell.handleEvent;
   // Cocos builds read the host-provided globals.
   window.Lumos = { gamevars: { game_resources_url: 'cocos/', game_param: "chalkboard-challenge" } };
 
@@ -152,7 +156,7 @@
       }, function (p) { progress(p); }).then(function (instance) {
         window.unityInstance = instance;
         finish();
-        try { instance.SendMessage('AppInterface', 'LoadGame', '{}'); } catch (e) {}
+        try { instance.SendMessage('AppInterface', 'LoadGame', JSON.stringify(l2shell.launchParams)); } catch (e) {}
       }).catch(function (e) { fail(String((e && e.message) || e)); });
     };
     s.onerror = function () { fail('could not load unity/game.js'); };

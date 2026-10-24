@@ -10,6 +10,24 @@ repository with its player, data file and asset bundles all local.
 python3 -m http.server 8000     # then open http://localhost:8000
 ```
 
+## Install as an app
+
+The site is an installable PWA on desktop and mobile:
+
+- **Chrome / Edge / Android** — use the install control in the address bar or the
+  browser menu. The manifest supplies a stable `id` (`./`, resolved against the
+  deployment root), `start_url`, `scope`, standalone display, 192/512 icons and
+  maskable variants.
+- **iPhone / iPad** — Share → Add to Home Screen. The Apple touch icons,
+  standalone title and status-bar tags are in both entry pages.
+- **Offline** — `sw.js` precaches the app shell and falls back to it for
+  navigations. Game art and fonts are cached as they are visited; the large
+  Unity payloads stream from the network and are never cached.
+
+`game/<slug>/` pages link the same manifest and register the same worker, so the
+site can be installed from any entry point. When changing shell files, bump
+`SHELL_CACHE` in `sw.js` so installed copies pick up the update.
+
 ---
 
 ## What's here

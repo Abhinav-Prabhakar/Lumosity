@@ -25,6 +25,8 @@
     root.setAttribute("data-theme", theme);
     root.style.colorScheme = theme;
     var dark = theme === "dark";
+    var themeColor = document.querySelector('meta[name="theme-color"]');
+    if (themeColor) themeColor.setAttribute("content", dark ? "#0a141d" : "#fbfaf6");
     document.querySelectorAll("[data-theme-toggle]").forEach(function (button) {
       button.setAttribute("aria-pressed", dark ? "true" : "false");
       button.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode");

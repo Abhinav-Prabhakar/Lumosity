@@ -1,0 +1,71 @@
+{
+  "id": "./",
+  "name": "Lumosity — Brain Training",
+  "short_name": "Lumosity",
+  "description": "Play 45 brain-training games and track your Lumosity Performance Index locally.",
+  "lang": "en",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#0c1f31",
+  "theme_color": "#0c1f31",
+  "categories": ["games", "education", "health"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Training Games",
+      "short_name": "Games",
+      "description": "Browse all 45 training games",
+      "url": "./index.html",
+      "icons": [
+        {
+          "src": "assets/icons/icon-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "My Brain",
+      "short_name": "My Brain",
+      "description": "See your LPI, history, and training stats",
+      "url": "./brain.html",
+      "icons": [
+        {
+          "src": "assets/icons/icon-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}

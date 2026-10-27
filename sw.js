@@ -17,7 +17,7 @@ import init, { decompress } from "./vendor/brotli/brotli_dec_wasm.js";
 const BIG_BINARY = /\.(wasm|data|bundle)$|\.framework\.js$/;
 
 // Bump this when the shell assets change, so installed copies pick up the update.
-const SHELL_CACHE = "l2-shell-v1";
+const SHELL_CACHE = "l2-shell-v2";
 const SHELL_ASSETS = [
   "./",
   "./index.html",

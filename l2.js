@@ -8,10 +8,12 @@
  * host, including GitHub Pages.
  */
 
-import { AREAS, GAMES, GAME_SLUGS, getGame, getSkill } from "./l2-games.js";
+import { AREAS, GAMES, GAME_SLUGS, NO_LPI_AREAS, getGame, getNorm, getSkill } from "./l2-games.js";
 
 const KEY = "lumosity.local.v1";
 const MAX_SESSIONS = 600;
+// Bump when the LPI maths changes; older stores get their history rebuilt.
+const LPI_MODEL = 2;
 
 /* ------------------------------------------------------------------ *
  * Small helpers
@@ -106,6 +108,7 @@ function blankStore() {
     sessions: [],
     games: {},
     lpiHistory: [],
+    lpiModel: LPI_MODEL,
   };
 }
 
@@ -129,6 +132,7 @@ function normalizeStore(raw) {
   store.sessions = Array.isArray(raw.sessions) ? raw.sessions.filter(Boolean) : [];
   store.games = raw.games && typeof raw.games === "object" ? raw.games : {};
   store.lpiHistory = Array.isArray(raw.lpiHistory) ? raw.lpiHistory.filter(Boolean) : [];
+  store.lpiModel = Number(raw.lpiModel) || 1;
 
   // Repair per-game records from older or hand-edited data.
   for (const [slug, stat] of Object.entries(store.games)) {
@@ -157,6 +161,14 @@ export function loadStore() {
     raw = null;
   }
   cache = normalizeStore(raw);
+  if (cache.lpiModel !== LPI_MODEL) {
+    for (const [slug, stat] of Object.entries(cache.games)) {
+      for (const h of stat.scoreHistory) h.lpi = scoreToLpi(h.score, slug);
+    }
+    cache.lpiHistory = rebuildLpiHistory(cache);
+    cache.lpiModel = LPI_MODEL;
+    persist();
+  }
   // Keep first/best LPI meaningful if an old store had games but no history.
   if (!cache.lpiHistory.length) {
     const lpi = computeLpi(cache);
@@ -217,58 +229,124 @@ export function updateSettings(patch) {
 /* ------------------------------------------------------------------ *
  * LPI model
  *
- * Lumosity's production LPI is a proprietary standardised score. This mirror
- * cannot call that service, so it uses a transparent local estimate on the
- * same 0–2000 scale:
+ * Follows Lumosity's published method (Help Center: "How is LPI
+ * calculated?", "Do All Games Affect my LPI?", "Do Language Games Have an
+ * LPI?") on the same 0–2000 scale:
  *
- *   game LPI = 400 + 1600 * (1 - e^(-bestScore / par))
- *   ...raised to a floor from the highest level reached.
- *   area LPI = mean of the game LPIs played in that area.
- *   overall  = mean of the area LPIs that have been played.
+ *  - Score LPI: each session score is placed on that game's score
+ *    distribution. A typical score (the median) is 1000; every standard
+ *    deviation is 300 points:
+ *        scoreLpi = 1000 + 300 * ln(score / median) / spread
+ *  - Game LPI: updated after every play from all recent scores, not just the
+ *    best or the latest, using exponential smoothing (Kable et al. 2017
+ *    describe Lumosity's LPI as exponentially smoothed).
+ *  - Area LPI: average of the Game LPIs in that area. Once an area has
+ *    enough games, the lowest one is left out.
+ *  - Overall LPI: average of all Game LPIs (Math included, Language not),
+ *    so it is not simply the mean of the area LPIs. With enough games the
+ *    lowest-performing ones are left out here too.
+ *  - Language games have no LPI.
  *
- * Each game's `par` is the score an average adult typically reaches in a
- * session. It makes the curve comparable across games whose scores are in
- * completely different units (30 matches vs 46,000 points).
+ * Lumosity does not publish its per-game score distributions; SCORE_NORMS
+ * in l2-games.js documents how each median was worked out.
  * ------------------------------------------------------------------ */
 
-export function gameLpiFromStats(stat, slug) {
-  if (!stat || !stat.plays) return 0;
+const LPI_MEAN = 1000;
+const LPI_SD = 300;
+const LPI_SMOOTHING = 0.35; // weight of the newest session in the Game LPI
+const AREA_DROP_MIN = 4; // games in an area before the lowest is dropped
+const OVERALL_DROP_EVERY = 6; // drop one lowest game per this many played
+
+export function hasLpi(slug) {
   const meta = getGame(slug);
-  const par = Math.max(1, Number(meta?.par) || 1500);
-  const score = Math.max(0, Number(stat.bestScore) || 0, Number(stat.bestStat) || 0);
-  const scoreLpi = 400 + 1600 * (1 - Math.exp(-score / par));
-  const levelLpi = stat.bestLevel ? 600 + (Number(stat.bestLevel) - 1) * 10 : 0;
-  return clamp(round(Math.max(scoreLpi, levelLpi)), 200, 2000);
+  return Boolean(meta && !NO_LPI_AREAS.has(meta.area) && getNorm(slug));
+}
+
+/** LPI of a single session score. */
+export function scoreToLpi(score, slug) {
+  if (!hasLpi(slug)) return 0;
+  const n = Number(score) || 0;
+  if (n <= 0) return 0;
+  const { median, spread } = getNorm(slug);
+  const z = Math.log(n / median) / spread;
+  return clamp(round(LPI_MEAN + LPI_SD * z), 1, 2000);
+}
+
+/** Smoothed Game LPI after a series of session scores (oldest first). */
+function smoothLpi(scores, slug) {
+  let lpi = 0;
+  for (const score of scores) {
+    const value = scoreToLpi(score, slug);
+    if (!value) continue;
+    lpi = lpi ? lpi + LPI_SMOOTHING * (value - lpi) : value;
+  }
+  return round(lpi);
+}
+
+export function gameLpiFromStats(stat, slug) {
+  if (!stat || !stat.plays || !hasLpi(slug)) return 0;
+  const history = Array.isArray(stat.scoreHistory) ? stat.scoreHistory : [];
+  const scores = history.length
+    ? history.map((h) => Number(h.score) || 0)
+    : [Number(stat.bestScore) || 0];
+  return smoothLpi(scores, slug);
+}
+
+function mean(values) {
+  return values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0;
+}
+
+function dropLowest(values, count) {
+  if (count <= 0) return values;
+  return values.slice().sort((a, b) => b - a).slice(0, Math.max(1, values.length - count));
 }
 
 export function computeLpi(store = loadStore()) {
-  const areaTotals = Object.fromEntries(AREAS.map((area) => [area, { sum: 0, n: 0 }]));
+  const byArea = Object.fromEntries(AREAS.map((area) => [area, []]));
   const gameLpis = {};
 
   for (const [slug, stat] of Object.entries(store.games || {})) {
-    if (!stat || !stat.plays) continue;
     const meta = getGame(slug);
     if (!meta) continue;
     const lpi = gameLpiFromStats(stat, slug);
     if (!lpi) continue;
     gameLpis[slug] = lpi;
-    const bucket = areaTotals[meta.area];
-    if (bucket) {
-      bucket.sum += lpi;
-      bucket.n += 1;
-    }
+    if (byArea[meta.area]) byArea[meta.area].push(lpi);
   }
 
   const areas = {};
   for (const area of AREAS) {
-    areas[area] = areaTotals[area].n ? round(areaTotals[area].sum / areaTotals[area].n) : 0;
+    const values = byArea[area];
+    const kept = dropLowest(values, values.length >= AREA_DROP_MIN ? 1 : 0);
+    // Lumosity shows any area LPI between 1 and 199 as 200.
+    areas[area] = values.length ? Math.max(200, round(mean(kept))) : 0;
   }
-  const playedAreas = AREAS.map((area) => areas[area]).filter((v) => v > 0);
-  const overall = playedAreas.length
-    ? round(playedAreas.reduce((a, b) => a + b, 0) / playedAreas.length)
+
+  const all = Object.values(gameLpis);
+  const overall = all.length
+    ? round(mean(dropLowest(all, Math.floor(all.length / OVERALL_DROP_EVERY))))
     : 0;
 
   return { overall, areas, gameLpis };
+}
+
+/*
+ * Rebuild LPI history from saved sessions. Used once when a store saved by an
+ * older model is opened, so first/best LPI and the chart use the same numbers.
+ */
+function rebuildLpiHistory(store) {
+  const sessions = store.sessions.slice().sort((a, b) => (Number(a.t) || 0) - (Number(b.t) || 0));
+  const replay = { games: {} };
+  const history = [];
+  for (const s of sessions) {
+    if (!getGame(s.slug)) continue;
+    const g = (replay.games[s.slug] = replay.games[s.slug] || { plays: 0, scoreHistory: [] });
+    g.plays += 1;
+    g.scoreHistory.push({ score: Number(s.score) || 0 });
+    const lpi = computeLpi(replay);
+    history.push({ t: Number(s.t) || 0, overall: lpi.overall, areas: lpi.areas, slug: s.slug, score: s.score });
+  }
+  return history.slice(-300);
 }
 
 export function getLpi() {
@@ -424,10 +502,7 @@ export function recordSession(slug, rawPayload, opts = {}) {
     stat,
     level,
     levelNext: levelNextRaw,
-    lpi: gameLpiFromStats(
-      { plays: 1, bestScore: score, bestStat: stat, bestLevel: level },
-      slug
-    ),
+    lpi: scoreToLpi(score, slug),
   });
   if (g.scoreHistory.length > 60) g.scoreHistory.splice(0, g.scoreHistory.length - 60);
 
@@ -621,7 +696,7 @@ export function getTotals() {
 
 export function getGameRankings() {
   const rows = getAllGameStats()
-    .filter((g) => g.plays > 0)
+    .filter((g) => g.plays > 0 && g.lpi > 0)
     .sort((a, b) => b.lpi - a.lpi || b.plays - a.plays || b.bestScore - a.bestScore);
   return rows.map((row, i) => ({ ...row, rank: i + 1 }));
 }
@@ -818,12 +893,17 @@ function showResultsOverlay(slug, summary) {
       : `${formatNumber(summary.scoreDelta)} vs best`
     : "First run saved";
   const lpiClass = summary.lpiChange > 0 ? "up" : summary.lpiChange < 0 ? "down" : "";
-  const lpiText = summary.lpiBefore
+  const lpiText = !hasLpi(summary.slug)
+    ? "Unchanged"
+    : summary.lpiBefore
     ? `${summary.lpiChange >= 0 ? "+" : ""}${formatNumber(summary.lpiChange)} this session`
     : "First LPI";
-  const areaText = summary.areaBefore
-    ? `${summary.areaChange >= 0 ? "+" : ""}${formatNumber(summary.areaChange)} area LPI`
-    : `First ${game.area} LPI`;
+  const noLpi = !hasLpi(summary.slug);
+  const areaText = noLpi
+    ? "Language games have no LPI"
+    : summary.areaBefore
+      ? `${summary.areaChange >= 0 ? "+" : ""}${formatNumber(summary.areaChange)} area LPI`
+      : `First ${game.area} LPI`;
   const savedText = summary.isPB ? "✓ New personal best saved" : "✓ Score saved locally";
 
   card.style.setProperty("--l2-accent", game.color);
@@ -853,7 +933,7 @@ function showResultsOverlay(slug, summary) {
         </div>
         <div>
           <span>${escapeHtml(game.area)}</span>
-          <b>${formatNumber(summary.areaAfter)}</b>
+          <b>${noLpi ? "—" : formatNumber(summary.areaAfter)}</b>
           <em>${areaText}</em>
         </div>
       </div>
@@ -1074,8 +1154,16 @@ export function initGamePage() {
   const zen = document.getElementById("p-zen");
   if (zen) zen.href = `../../games/${slug}/?zen=1`;
 
-  text(document.getElementById("p-lpi"), stats.plays ? formatNumber(stats.lpi) : "—");
-  text(document.getElementById("p-lpi-note"), stats.plays ? `Top ${rank ? rank.rank : "—"} of your games` : "Play to establish a game LPI");
+  const gameHasLpi = hasLpi(slug);
+  text(document.getElementById("p-lpi"), stats.plays && gameHasLpi ? formatNumber(stats.lpi) : "—");
+  text(
+    document.getElementById("p-lpi-note"),
+    !gameHasLpi
+      ? "Language games don't have an LPI"
+      : stats.plays
+        ? `Top ${rank ? rank.rank : "—"} of your games`
+        : "Play to establish a game LPI"
+  );
   const lpiBar = document.getElementById("p-lpi-bar");
   if (lpiBar) lpiBar.style.width = `${stats.plays ? widthPct(stats.lpi) : 0}%`;
 
@@ -1155,7 +1243,7 @@ function areaRowsHtml(lpi) {
       <div class="flex flex-col w-full">
         <div class="flex flex-row justify-between items-center mb-1 font-normal text-body-text-3">
           <div class="flex flex-row items-baseline flex-wrap gap-1">${escapeHtml(area)}</div>
-          <div class="text-caption-2 text-text-subdued">${value ? `${Math.round(value / 20)}%` : "Not played"}</div>
+          <div class="text-caption-2 text-text-subdued">${value ? `${Math.round(value / 20)}%` : NO_LPI_AREAS.has(area) ? "No LPI" : "Not played"}</div>
         </div>
         <div data-name="progress-container" class="flex flex-row items-center gap-2 text-body-text-3">
           ${lpiFill(value)}

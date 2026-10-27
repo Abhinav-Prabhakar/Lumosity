@@ -38,7 +38,6 @@ export const GAMES = {
     skill: "Divided Attention",
     description: "Train your Divided Attention skills by preventing ant collisions.",
     color: "#0E2337",
-    par: 3000,
   },
   "brain-shift": {
     name: "Brain Shift",
@@ -46,7 +45,6 @@ export const GAMES = {
     skill: "Task Switching",
     description: "Test your Task Switching by switching quickly between changing rules.",
     color: "#005940",
-    par: 3000,
   },
   "chalkboard-challenge": {
     name: "Chalkboard Challenge",
@@ -54,7 +52,6 @@ export const GAMES = {
     skill: "Numerical Estimation",
     description: "Test your Numerical Estimation skills by quickly finding the greater solution.",
     color: "#005940",
-    par: 30,
   },
   "cognition-kitchen": {
     name: "Cognition Kitchen",
@@ -62,7 +59,6 @@ export const GAMES = {
     skill: "Short-Term Memory",
     description: "Train your Short-Term Memory by memorizing a recipe, then preparing it without your cookbook.",
     color: "#0e2337",
-    par: 1500,
   },
   "color-match": {
     name: "Color Match",
@@ -70,7 +66,6 @@ export const GAMES = {
     skill: "Response Inhibition",
     description: "Exercise your Response Inhibition by comparing one word's meaning to another word's color.",
     color: "#0E2337",
-    par: 60,
   },
   "contextual": {
     name: "Contextual",
@@ -78,7 +73,6 @@ export const GAMES = {
     skill: "Reading Comprehension",
     description: "Exercise your Reading Comprehension by replacing incorrectly used words.",
     color: "#0E2337",
-    par: 30,
   },
   "continuum": {
     name: "Continuum",
@@ -86,7 +80,6 @@ export const GAMES = {
     skill: "Vocabulary",
     description: "Exercise your Vocabulary by discerning subtle differences between words.",
     color: "#094441",
-    par: 1500,
   },
   "disillusion": {
     name: "Disillusion",
@@ -94,7 +87,6 @@ export const GAMES = {
     skill: "Task Switching",
     description: "Put your Task-Switching skills to work by matching tiles as quickly as you can.",
     color: "#054450",
-    par: 25000,
   },
   "ebb-and-flow": {
     name: "Ebb and Flow",
@@ -102,7 +94,6 @@ export const GAMES = {
     skill: "Task Switching",
     description: "Test your Task-Switching abilities by shifting focus between where the leaves point and how they move.",
     color: "#003C82",
-    par: 3000,
   },
   "editors-choice": {
     name: "Editor's Choice",
@@ -110,7 +101,6 @@ export const GAMES = {
     skill: "Vocabulary",
     description: "Train your Vocabulary by quickly selecting synonyms.",
     color: "#413834",
-    par: 30,
   },
   "feel-the-beat": {
     name: "Feel the Beat",
@@ -118,7 +108,6 @@ export const GAMES = {
     skill: "Timing",
     description: "Exercise your Timing skills by playing the drums on your keyboard.",
     color: "#3B2F84",
-    par: 3000,
   },
   "follow-that-frog": {
     name: "Follow That Frog",
@@ -126,7 +115,6 @@ export const GAMES = {
     skill: "Working Memory",
     description: "Exercise your Working Memory by memorizing and repeating the orange frog's jumps.",
     color: "#0e2337",
-    par: 30,
   },
   "fuse-clues": {
     name: "Fuse Clues",
@@ -134,7 +122,6 @@ export const GAMES = {
     skill: "Logical Reasoning",
     description: "Exercise your Logical Reasoning to fix a power outage in an apartment building.",
     color: "#196E6E",
-    par: 1500,
   },
   "halve-your-cake": {
     name: "Halve Your Cake",
@@ -142,7 +129,6 @@ export const GAMES = {
     skill: "Proportional Reasoning",
     description: "Exercise your Proportional Reasoning skills by measuring ingredients for delicious baked goods.",
     color: "#A44522",
-    par: 1500,
   },
   "highway-hazards": {
     name: "Highway Hazards",
@@ -150,7 +136,6 @@ export const GAMES = {
     skill: "Information Processing",
     description: "Exercise your Information Processing skills by dodging collisions in a race through the desert.",
     color: "#7D2709",
-    par: 1500,
   },
   "jigsaw-sudoku": {
     name: "Speedoku",
@@ -158,7 +143,6 @@ export const GAMES = {
     skill: "Logical Reasoning",
     description: "Train your Logical Reasoning by deducing which symbol belongs in every row, column, and shape.",
     color: "#0e2337",
-    par: 3000,
   },
   "lost-in-migration": {
     name: "Lost in Migration",
@@ -166,7 +150,6 @@ export const GAMES = {
     skill: "Selective Attention",
     description: "Train your Selective Attention by focusing on the direction of the center bird.",
     color: "#48A4B7",
-    par: 60,
   },
   "magic-chance": {
     name: "Magic Chance",
@@ -174,7 +157,6 @@ export const GAMES = {
     skill: "Probabilistic Reasoning",
     description: "Train your Probabilistic Reasoning skills by setting up card tricks.",
     color: "#374884",
-    par: 1500,
   },
   "masterpiece": {
     name: "Masterpiece",
@@ -182,7 +164,6 @@ export const GAMES = {
     skill: "Spatial Reasoning",
     description: "Exercise your Spatial Reasoning by fitting pieces of a mosaic together.",
     color: "#ee9528",
-    par: 1500,
   },
   "memory-match": {
     name: "Memory Match",
@@ -190,7 +171,6 @@ export const GAMES = {
     skill: "Working Memory",
     description: "Train your Working Memory by determining whether the symbol matches the one presented two cards ago.",
     color: "#196E6E",
-    par: 30,
   },
   "memory-matrix": {
     name: "Memory Matrix",
@@ -198,7 +178,6 @@ export const GAMES = {
     skill: "Spatial Recall",
     description: "Train your Spatial Recall by remembering the pattern of tiles.",
     color: "#5A322B",
-    par: 30,
   },
   "memory-serves": {
     name: "Memory Serves",
@@ -206,7 +185,6 @@ export const GAMES = {
     skill: "Working Memory",
     description: "Exercise your Working Memory by delivering bags to hotel guests.",
     color: "#3C2C3E",
-    par: 1500,
   },
   "organic-order": {
     name: "Organic Order",
@@ -214,7 +192,6 @@ export const GAMES = {
     skill: "Logical Reasoning",
     description: "Challenge your Logical Reasoning by planting seeds in the right order.",
     color: "#48A77A",
-    par: 1500,
   },
   "penguin-rally": {
     name: "Penguin Rally",
@@ -222,7 +199,6 @@ export const GAMES = {
     skill: "Spatial Orientation",
     description: "Exercise your Spatial Orientation by beating your rival to the fish.",
     color: "#70DFDD",
-    par: 400,
   },
   "pet-detective": {
     name: "Pet Detective",
@@ -230,7 +206,6 @@ export const GAMES = {
     skill: "Planning",
     description: "Exercise your route Planning skills by returning lost pets using the shortest paths.",
     color: "#0e2337",
-    par: 1500,
   },
   "pinball-recall": {
     name: "Pinball Recall",
@@ -238,7 +213,6 @@ export const GAMES = {
     skill: "Working Memory",
     description: "Train your Working Memory by memorizing the bumper locations before they vanish.",
     color: "#001626",
-    par: 1500,
   },
   "pirate-passage": {
     name: "Pirate Passage",
@@ -246,7 +220,6 @@ export const GAMES = {
     skill: "Planning",
     description: "Put your Planning skills to work by avoiding pirates on the path to treasure.",
     color: "#18C4BC",
-    par: 1500,
   },
   "playing-koi": {
     name: "Playing Koi",
@@ -254,7 +227,6 @@ export const GAMES = {
     skill: "Divided Attention",
     description: "Train your Divided Attention skills by processing multiple streams of information as you feed fish.",
     color: "#2076BC",
-    par: 1500,
   },
   "raindrops": {
     name: "Raindrops",
@@ -262,7 +234,6 @@ export const GAMES = {
     skill: "Arithmetic",
     description: "Test your Arithmetic skills by solving math problems before they hit the water.",
     color: "#3AC0D1",
-    par: 60,
   },
   "river-ranger": {
     name: "River Ranger",
@@ -270,7 +241,6 @@ export const GAMES = {
     skill: "Information Processing",
     description: "Challenge your Information Processing by quickly spotting animals in a river.",
     color: "#57B7F2",
-    par: 1500,
   },
   "ruled-out": {
     name: "Ruled Out",
@@ -278,7 +248,6 @@ export const GAMES = {
     skill: "Logical Reasoning",
     description: "Train your Logical Reasoning by determining the hidden rule and selecting cards that follow it.",
     color: "#0e2337",
-    par: 1500,
   },
   "skyrise": {
     name: "Skyrise",
@@ -286,7 +255,6 @@ export const GAMES = {
     skill: "Field of View",
     description: "Test your Field of View by remembering numbers flashed across the screen.",
     color: "#379EA6",
-    par: 3000,
   },
   "space-trace": {
     name: "Space Trace",
@@ -294,7 +262,6 @@ export const GAMES = {
     skill: "Spatial Fluency",
     description: "Practice your Spatial Fluency skills by creating as many unique patterns as possible.",
     color: "#000420",
-    par: 3000,
   },
   "speed-match": {
     name: "Speed Match",
@@ -302,7 +269,6 @@ export const GAMES = {
     skill: "Information Processing",
     description: "Train your Information Processing by quickly determining whether the cards match.",
     color: "#00446D",
-    par: 35,
   },
   "speed-pack": {
     name: "Speed Pack",
@@ -310,7 +276,6 @@ export const GAMES = {
     skill: "Visualization",
     description: "Practice Visualization by quickly fitting the camera into an already filled suitcase.",
     color: "#B7802D",
-    par: 20,
   },
   "splitting-seeds": {
     name: "Splitting Seeds",
@@ -318,7 +283,6 @@ export const GAMES = {
     skill: "Visualization",
     description: "Test your Visualization skills by quickly dividing seeds into two equal groups.",
     color: "#00693F",
-    par: 40,
   },
   "star-search": {
     name: "Star Search",
@@ -326,7 +290,6 @@ export const GAMES = {
     skill: "Selective Attention",
     description: "Exercise your Selective Attention skills by quickly finding the unique object.",
     color: "#0E2337",
-    par: 30,
   },
   "taking-root": {
     name: "Taking Root",
@@ -334,7 +297,6 @@ export const GAMES = {
     skill: "Vocabulary",
     description: "Exercise your Vocabulary by learning the building blocks of words.",
     color: "#6D3226",
-    par: 1500,
   },
   "tidal-treasures": {
     name: "Tidal Treasures",
@@ -342,7 +304,6 @@ export const GAMES = {
     skill: "Short-Term Memory",
     description: "Train your Short-Term Memory by choosing objects you haven't clicked before.",
     color: "#374884",
-    par: 30,
   },
   "top-that": {
     name: "Top That",
@@ -350,7 +311,6 @@ export const GAMES = {
     skill: "Numerical Estimation",
     description: "Exercise your Numerical Estimation skills to win the most expensive prize.",
     color: "#071C31",
-    par: 1500,
   },
   "train-of-thought": {
     name: "Train of Thought",
@@ -358,7 +318,6 @@ export const GAMES = {
     skill: "Divided Attention",
     description: "Exercise your Divided Attention by directing each train to its matching station.",
     color: "#2A802B",
-    par: 30,
   },
   "trouble-brewing": {
     name: "Trouble Brewing",
@@ -366,7 +325,6 @@ export const GAMES = {
     skill: "Divided Attention",
     description: "Exercise your Divided Attention skills by serving coffee orders at a busy cafe.",
     color: "#084C53",
-    par: 1500,
   },
   "whats-my-name": {
     name: "What's My Name?",
@@ -374,7 +332,6 @@ export const GAMES = {
     skill: "Face-Name Recall",
     description: "Practice your Face-Name Recall in this meet-and-greet game.",
     color: "#0e2337",
-    par: 1500,
   },
   "word-bubbles": {
     name: "Word Bubbles",
@@ -382,7 +339,6 @@ export const GAMES = {
     skill: "Verbal Fluency",
     description: "Generate words that start with the same letters to train your Verbal Fluency.",
     color: "#0E2337",
-    par: 30,
   },
   "word-snatchers": {
     name: "Word Snatchers",
@@ -390,7 +346,6 @@ export const GAMES = {
     skill: "Vocabulary",
     description: "Exercise your Vocabulary by unscrambling the word.",
     color: "#652B7D",
-    par: 30,
   },
 };
 
@@ -400,3 +355,70 @@ export function getGame(slug) { return GAMES[slug] || null; }
 
 export function getSkill(name) { return SKILLS[name] || { description: "", example: "" }; }
 
+
+/*
+ * Typical session scores, used to turn a raw score into a Game LPI.
+ *
+ * Lumosity assigns a Game LPI to each score from that game's score
+ * distribution across members; the distributions are not published. These
+ * medians are worked out from each game's official scoring rules in the
+ * Lumosity Help Center (points per answer, multipliers, end-of-game bonuses)
+ * for an average adult a few sessions in. `spread` is the log-scale standard
+ * deviation of scores (wider for games whose points compound with level).
+ *
+ * A score at the median maps to 1000, the scale's average.
+ */
+export const SCORE_NORMS = {
+  // Speed
+  "highway-hazards": { median: 30000, spread: 0.35 }, // score = average speed x 1000
+  "penguin-rally": { median: 3000, spread: 0.5 },
+  "river-ranger": { median: 6000, spread: 0.5 },
+  "speed-match": { median: 6500, spread: 0.5 }, // 50 x multiplier per answer, +250 x final multiplier
+  "speed-pack": { median: 5000, spread: 0.5 },
+  "splitting-seeds": { median: 10000, spread: 0.55 }, // 200 x level per round
+  // Memory
+  "cognition-kitchen": { median: 5000, spread: 0.5 },
+  "follow-that-frog": { median: 9000, spread: 0.5 }, // 500 per jump, 750 after 20 in a row
+  "memory-match": { median: 8000, spread: 0.5 }, // 50 x level per answer, +250 x final level
+  "memory-matrix": { median: 14000, spread: 0.45 }, // 250 per tile, +100 per tile on a perfect board
+  "memory-serves": { median: 6000, spread: 0.55 },
+  "pinball-recall": { median: 4500, spread: 0.6 }, // level^2 x 10 per trial
+  "tidal-treasures": { median: 4000, spread: 0.45 },
+  "whats-my-name": { median: 10000, spread: 0.55 }, // 150 to 8480 per name
+  // Attention
+  "assist-ants": { median: 8000, spread: 0.5 }, // 300-400 per seed
+  "feel-the-beat": { median: 6000, spread: 0.5 },
+  "lost-in-migration": { median: 7000, spread: 0.5 }, // 50 x multiplier per answer
+  "playing-koi": { median: 3000, spread: 0.55 }, // 10, 20, 30... per fish
+  "skyrise": { median: 5000, spread: 0.5 },
+  "star-search": { median: 6000, spread: 0.5 },
+  "train-of-thought": { median: 12000, spread: 0.55 }, // 100 x level per train
+  "trouble-brewing": { median: 10000, spread: 0.5 }, // up to 1000 per cup
+  // Flexibility
+  "brain-shift": { median: 8000, spread: 0.5 }, // metered, 50 x multiplier
+  "color-match": { median: 5500, spread: 0.5 }, // metered, 50 x multiplier
+  "disillusion": { median: 25000, spread: 0.5 },
+  "ebb-and-flow": { median: 7000, spread: 0.5 }, // metered, 50 x multiplier
+  "space-trace": { median: 5000, spread: 0.5 },
+  // Reasoning (Lumosity's "Problem Solving")
+  "fuse-clues": { median: 4000, spread: 0.55 },
+  "jigsaw-sudoku": { median: 4000, spread: 0.55 },
+  "masterpiece": { median: 5000, spread: 0.55 },
+  "organic-order": { median: 5000, spread: 0.55 },
+  "pet-detective": { median: 15000, spread: 0.5 }, // 1000 per pet, +2000 x level, time bonus
+  "pirate-passage": { median: 5000, spread: 0.55 },
+  "ruled-out": { median: 5000, spread: 0.55 },
+  // Math
+  "chalkboard-challenge": { median: 4500, spread: 0.5 }, // metered, 50 x multiplier
+  "halve-your-cake": { median: 8000, spread: 0.5 }, // +1000 x level bonus
+  "magic-chance": { median: 5000, spread: 0.55 },
+  "raindrops": { median: 15000, spread: 0.45 }, // 500 per answer
+  "top-that": { median: 5000, spread: 0.5 },
+};
+
+/* Lumosity gives Language games no LPI (they track words covered instead). */
+export const NO_LPI_AREAS = new Set(["Language"]);
+
+export function getNorm(slug) {
+  return SCORE_NORMS[slug] || null;
+}

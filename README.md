@@ -57,13 +57,31 @@ Lumosity loop that make the games feel like training rather than demos:
   rankings and most-improved games are all derived from the same saved
   sessions. Nothing on the page is hard-coded; with no sessions it shows an
   empty state instead of a fake number.
-- **The LPI is a local estimate.** Lumosity's production LPI is a proprietary
-  standardised score computed by its backend. This mirror uses a transparent
-  0–2000 estimate: each game score is mapped through a saturating curve using
-  that game's typical score, with a floor from the highest level reached. Area
-  LPI is the mean of the played games in that area; overall LPI is the mean of
-  the played areas. It is consistent and useful for tracking your own progress,
-  but it is not Lumosity's official number.
+- **The LPI follows Lumosity's published method.** Lumosity computes LPI on its
+  servers and does not publish the formula, but its Help Center and research
+  describe how it works, and this build copies that structure:
+  - *Score LPI* — each session score is placed on that game's score
+    distribution on the 0–2000 scale, where a typical (median) score is 1000
+    and each standard deviation is 300 points.
+  - *Game LPI* — updated after every play from all recent scores, not just the
+    best or the latest, using exponential smoothing. A bad session can lower
+    it, as it does on Lumosity.
+  - *Area LPI* — the average of the Game LPIs in that area. Once an area has
+    four or more games, the lowest is left out. Any area LPI from 1 to 199 is
+    shown as 200, as the Lumosity app does.
+  - *Overall LPI* — the average of all Game LPIs (Math included), so it is not
+    simply the mean of the areas. One lowest game is left out for every six
+    played.
+  - *Language games have no LPI*, as on Lumosity. They still save scores and
+    levels.
+
+  Lumosity does not publish per-game score distributions. The typical score for
+  each game (`SCORE_NORMS` in `l2-games.js`) is worked out from that game's
+  official scoring rules: points per answer, multipliers and end-of-game
+  bonuses for an average adult a few sessions in. Those medians are the one
+  estimated part, and they are kept in one table so they can be tuned.
+  Saved data from the older model is rescored automatically, and its LPI
+  history is rebuilt from the saved sessions.
 - **Reset when you want.** My Brain has a “Reset local data” link that clears
   scores, levels and LPI history for the browser.
 
@@ -160,6 +178,9 @@ main gameplay scene (`WebScene`) returns `403 Access Denied` from Lumosity's ass
 one of them — the payload is not publicly retrievable, so they cannot be mirrored faithfully.
 They still appear on the Training Games page, greyed out and marked **Under construction**, and
 are not clickable.
+
+Rechecked in October 2026: Lumosity now serves these games only to signed-in members, so there is
+still no public copy to mirror.
 
 </details>
 
